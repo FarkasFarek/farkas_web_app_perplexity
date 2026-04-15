@@ -7,21 +7,22 @@ interface Post {
   created_at: string
 }
 
-const { data: posts, error } = await useFetch<Post[]>('/api/posts/mine')
+const {  posts, error } = await useFetch<Post[]>('/api/posts/mine')
 </script>
 
 <template>
   <div class="space-y-4">
-    <div v-if="error" class="text-red-500 text-sm py-4 text-center">
+    <div v-if="error" class="py-4 text-center text-sm text-red-500">
       Hiba a posztok betöltésekor.
     </div>
+
     <div
       v-else-if="!posts?.length"
-      class="text-gray-400 text-center py-16 flex flex-col items-center gap-3"
+      class="flex flex-col items-center gap-3 py-16 text-center text-gray-400"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        class="w-10 h-10 text-gray-300"
+        class="h-10 w-10 text-gray-300"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -36,30 +37,30 @@ const { data: posts, error } = await useFetch<Post[]>('/api/posts/mine')
       </svg>
       <p class="text-sm">Még nincs egy bejegyzésed sem.</p>
     </div>
+
     <article
       v-for="post in posts"
       :key="post.id"
-      class="p-4 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200"
+      class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md"
     >
-      <div class="flex items-start justify-between gap-3 mb-2">
-        <h3 class="font-semibold text-gray-800 leading-snug">
+      <div class="mb-2 flex items-start justify-between gap-3">
+        <h3 class="leading-snug font-semibold text-gray-800">
           {{ post.title }}
         </h3>
+
         <span
-          :class="
-            post.published
-              ? 'bg-green-50 text-green-700 ring-green-200'
-              : 'bg-gray-50 text-gray-500 ring-gray-200'
-          "
-          class="shrink-0 text-xs px-2 py-0.5 rounded-full ring-1"
+          :class="post.published ? 'bg-green-50 text-green-700 ring-green-200' : 'bg-gray-50 text-gray-500 ring-gray-200'"
+          class="shrink-0 rounded-full px-2 py-0.5 text-xs ring-1"
         >
           {{ post.published ? 'Publikus' : 'Vázlat' }}
         </span>
       </div>
-      <p class="text-sm text-gray-500 line-clamp-2 leading-relaxed">
+
+      <p class="line-clamp-2 text-sm leading-relaxed text-gray-500">
         {{ post.content }}
       </p>
-      <p class="text-xs text-gray-400 mt-3">
+
+      <p class="mt-3 text-xs text-gray-400">
         {{ new Date(post.created_at).toLocaleDateString('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }) }}
       </p>
     </article>
