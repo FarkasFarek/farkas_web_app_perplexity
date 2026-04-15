@@ -8,10 +8,9 @@ const user = useSupabaseUser()
 
 <template>
   <main class="min-h-screen bg-gray-50">
-    <div class="max-w-2xl mx-auto px-4 py-10">
-      <!-- Header -->
+    <div class="mx-auto max-w-2xl px-4 py-10">
       <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">
           Dashboard
         </h1>
         <p class="mt-1 text-sm text-gray-500">
@@ -20,21 +19,20 @@ const user = useSupabaseUser()
         </p>
       </div>
 
-      <!-- Posts szekció -->
       <section>
-        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">
           Bejegyzéseid
         </h2>
 
         <Suspense>
           <DashboardPosts />
-          <!-- Skeleton fallback -->
+
           <template #fallback>
             <div class="space-y-3" aria-label="Betöltés...">
               <div
                 v-for="i in 4"
                 :key="i"
-                class="h-24 rounded-xl bg-gray-100 animate-pulse"
+                class="h-24 animate-pulse rounded-xl bg-gray-100"
               />
             </div>
           </template>
