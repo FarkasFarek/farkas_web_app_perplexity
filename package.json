@@ -8,19 +8,22 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxi typecheck"
   },
   "dependencies": {
     "@nuxtjs/supabase": "^1.5.0",
-    "@pinia/nuxt": "^0.5.5",
-    "nuxt": "^3.13.2",
-    "pinia": "^2.1.7",
-    "vue": "^3.5.12",
-    "vue-router": "^4.4.5"
+    "@nuxtjs/tailwindcss": "^6.12.2",
+    "@pinia/nuxt": "^0.9.0",
+    "nuxt": "^3.16.2",
+    "pinia": "^3.0.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@nuxtjs/tailwindcss": "^6.12.2",
-    "@types/node": "^22.7.5",
-    "typescript": "^5.6.3"
+    "@nuxt/devtools": "latest",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
