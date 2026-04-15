@@ -1,0 +1,40 @@
+# --- Fuggosegek -----------------------------------------------------------
+node_modules/
+
+# --- Nuxt build output ----------------------------------------------------
+.nuxt/
+.output/
+.vercel/
+
+# --- Kornyezeti valtozok --------------------------------------------------
+# .env SOHA nem kerulhet verziokezelesbe (titkok, kulcsok)!
+.env
+.env.local
+.env.*.local
+
+# --- Naplo fajlok ---------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- OS specifikus --------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --- Editor ---------------------------------------------------------------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- TypeScript -----------------------------------------------------------
+*.tsbuildinfo
+
+# --- Cache ----------------------------------------------------------------
+.cache/
+.eslintcache
