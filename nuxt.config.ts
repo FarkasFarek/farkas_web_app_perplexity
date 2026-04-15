@@ -1,42 +1,39 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: '2024-11-01',
+
   devtools: { enabled: true },
 
-  // --- Modulok -----------------------------------------------------------
   modules: [
-    '@nuxtjs/supabase',  // Supabase SSR + auth cookie kezelés
-    '@pinia/nuxt',       // Pinia state management
+    '@nuxtjs/supabase',
+    '@pinia/nuxt',
+    '@nuxtjs/tailwindcss',
   ],
 
-  // --- Runtime konfiguráció ---------------------------------------------
-  // Privát értékek (pl. supabaseServiceKey) csak szerver oldalon érhetők el.
-  // Publikus értékek (public.*) kliensen is elérhetők.
-  runtimeConfig: {
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY, // PRIVÁT - soha ne kerüljön kliensre
-    public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-    },
-  },
-
-  // --- TypeScript --------------------------------------------------------
-  typescript: {
-    strict: true,
-    typeCheck: true,
-  },
-
-  // --- Nitro (Vercel Edge Runtime) ---------------------------------------
+  // Edge runtime Vercelen
   nitro: {
     preset: 'vercel-edge',
   },
 
-  // --- @nuxtjs/supabase konfiguráció ------------------------------------
-  // A modul automatikusan olvassa a SUPABASE_URL és SUPABASE_KEY env változókat.
-  // Redirect beállítások az auth flow-hoz:
   supabase: {
-    redirectOptions: {
-      login: '/login',
-      callback: '/confirm',
-      exclude: ['/', '/posts'],
+    // Redirect automatikus auth guard kikapcsolva –
+    // middleware/auth.ts kezeli manuálisan
+    redirect: false,
+  },
+
+  runtimeConfig: {
+    // Csak szerverolaali (nem kerül a kliens bundlebe)
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    secretKey: process.env.NUXT_SECRET_KEY,
+
+    // Publikus (kliens és szerver is látja)
+    public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
     },
+  },
+
+  typescript: {
+    strict: true,
+    typeCheck: false, // build közben ki van kapcsolva, lokálisan npx nuxi typecheck
   },
 })
