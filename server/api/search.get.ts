@@ -1,10 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { z } from 'zod'
 import type { Product, NewsItem } from '~/types/climahub'
-
-const querySchema = z.object({
-  q: z.string().min(2, 'Search query must be at least 2 characters')
-})
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -14,16 +9,15 @@ export default defineEventHandler(async (event) => {
   )
 
   const rawQuery = getQuery(event)
-  const parsed = querySchema.safeParse(rawQuery)
+  const q = typeof rawQuery.q === 'string' ? rawQuery.q.trim() : ''
 
-  if (!parsed.success) {
+  if (q.length < 2) {
     throw createError({
       statusCode: 400,
-      statusMessage: parsed.error.errors[0]?.message ?? 'Invalid query'
+      statusMessage: 'Search query must be at least 2 characters'
     })
   }
 
-  const { q } = parsed.data
   const pattern = `%${q}%`
 
   const [productsResult, newsResult] = await Promise.all([
