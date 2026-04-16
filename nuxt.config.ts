@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
 
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   modules: [
     '@nuxtjs/supabase',
@@ -34,11 +34,13 @@ export default defineNuxtConfig({
     // Publikus (kliens és szerver is látja)
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
+      supabaseUrl: process.env.SUPABASE_URL ?? '',
+      supabaseKey: process.env.SUPABASE_KEY ?? '',
     },
   },
 
   typescript: {
     strict: true,
-    typeCheck: false, // build közben ki van kapcsolva, lokálisan npx nuxi typecheck
+    typeCheck: false,
   },
 })
