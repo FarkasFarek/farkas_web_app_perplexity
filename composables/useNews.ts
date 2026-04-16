@@ -3,7 +3,6 @@ import { useFilterStore } from '~/stores/filter'
 
 export function useNews() {
   const filterStore = useFilterStore()
-  const supabase = useSupabaseClient()
 
   const news = ref<NewsItem[]>([])
   const hasMore = ref(true)
@@ -48,7 +47,6 @@ export function useNews() {
     await loadMore()
   }
 
-  // Auto-reload when active category changes
   watch(() => filterStore.activeCategory, () => {
     resetAndLoad()
   })
