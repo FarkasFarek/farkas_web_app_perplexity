@@ -21,11 +21,11 @@ export default defineEventHandler(async (event) => {
     .order('published_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
-  if (category && ['klíma', 'hőszivattyú', 'okos_otthon'].includes(category)) {
+  if (category && ['klima', 'hoszivattyu', 'okos_otthon'].includes(category)) {
     dbQuery = dbQuery.eq('category', category)
   }
 
-  const { data, error, count } = await dbQuery
+  const {  rows, error, count } = await dbQuery
 
   if (error) {
     throw createError({ statusCode: 500, statusMessage: error.message })
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
   const totalPages = Math.ceil(total / limit)
 
   return {
-     data as NewsItem[],
+    items: rows as NewsItem[],
     meta: {
       page,
       limit,
@@ -43,5 +43,5 @@ export default defineEventHandler(async (event) => {
       totalPages,
       hasMore: page < totalPages
     }
-  } satisfies PaginatedResponse<NewsItem>
+  }
 })
