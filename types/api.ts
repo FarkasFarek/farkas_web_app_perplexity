@@ -6,11 +6,12 @@ export interface PaginationMeta {
   limit: number
   total: number
   totalPages: number
+  hasMore: boolean
 }
 
 export interface PaginatedResponse<T> {
-   T[]
-  pagination: PaginationMeta
+  items: T[]
+  meta: PaginationMeta
 }
 
 // --- API Error ----------------------------------------------------------
