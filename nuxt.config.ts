@@ -19,10 +19,15 @@ export default defineNuxtConfig({
     // Redirect automatikus auth guard kikapcsolva –
     // middleware/auth.ts kezeli manuálisan
     redirect: false,
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/', '/api/products*', '/api/news*', '/api/search*'],
+    },
   },
 
   runtimeConfig: {
-    // Csak szerverolaali (nem kerül a kliens bundlebe)
+    // Csak szerveroldali (nem kerül a kliens bundlebe)
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     secretKey: process.env.NUXT_SECRET_KEY,
 
