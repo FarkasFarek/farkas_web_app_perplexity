@@ -20,9 +20,9 @@ export function useNews() {
       const category = filterStore.activeCategory
       const params = new URLSearchParams({
         page: String(currentPage.value),
-        limit: String(LIMIT)
+        limit: String(LIMIT),
       })
-      if (category !== 'összes') params.set('category', category)
+      if (category !== 'osszes') params.set('category', category)
 
       const res = await $fetch<{  NewsItem[]; meta: { hasMore: boolean } }>(
         `/api/news?${params}`
@@ -47,9 +47,10 @@ export function useNews() {
     await loadMore()
   }
 
-  watch(() => filterStore.activeCategory, () => {
-    resetAndLoad()
-  })
+  watch(
+    () => filterStore.activeCategory,
+    () => { resetAndLoad() },
+  )
 
   return { news, hasMore, loading, error, loadMore, resetAndLoad }
 }
