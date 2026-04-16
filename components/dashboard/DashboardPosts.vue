@@ -18,7 +18,7 @@ const {  posts, error } = await useFetch<Post[]>('/api/posts/mine')
 
     <div
       v-else-if="!posts?.length"
-      class="flex flex-col items-center gap-3 py-16 text-center text-gray-400"
+      class="flex flex-col items-center gap-3 py-12 text-center"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -32,36 +32,29 @@ const {  posts, error } = await useFetch<Post[]>('/api/posts/mine')
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
-          d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+          d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
         />
       </svg>
-      <p class="text-sm">Még nincs egy bejegyzésed sem.</p>
+      <p class="text-sm text-gray-500">Még nincs bejegyzésed.</p>
     </div>
 
     <article
       v-for="post in posts"
       :key="post.id"
-      class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md"
+      class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
     >
-      <div class="mb-2 flex items-start justify-between gap-3">
-        <h3 class="leading-snug font-semibold text-gray-800">
-          {{ post.title }}
-        </h3>
-
+      <div class="flex items-start justify-between gap-3">
+        <h3 class="font-semibold text-gray-900 leading-snug">{{ post.title }}</h3>
         <span
-          :class="post.published ? 'bg-green-50 text-green-700 ring-green-200' : 'bg-gray-50 text-gray-500 ring-gray-200'"
-          class="shrink-0 rounded-full px-2 py-0.5 text-xs ring-1"
+          class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
+          :class="post.published ? 'bg-teal-50 text-teal-700' : 'bg-gray-100 text-gray-500'"
         >
-          {{ post.published ? 'Publikus' : 'Vázlat' }}
+          {{ post.published ? 'Publikált' : 'Piszkozat' }}
         </span>
       </div>
-
-      <p class="line-clamp-2 text-sm leading-relaxed text-gray-500">
-        {{ post.content }}
-      </p>
-
+      <p class="mt-2 text-sm text-gray-500 line-clamp-2">{{ post.content }}</p>
       <p class="mt-3 text-xs text-gray-400">
-        {{ new Date(post.created_at).toLocaleDateString('hu-HU', { year: 'numeric', month: 'long', day: 'numeric' }) }}
+        {{ new Date(post.created_at).toLocaleDateString('hu-HU') }}
       </p>
     </article>
   </div>
