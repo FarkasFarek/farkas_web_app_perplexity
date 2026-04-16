@@ -24,11 +24,11 @@ export function useNews() {
       })
       if (category !== 'osszes') params.set('category', category)
 
-      const res = await $fetch<{  NewsItem[]; meta: { hasMore: boolean } }>(
+      const res = await $fetch<{ items: NewsItem[]; meta: { hasMore: boolean } }>(
         `/api/news?${params}`
       )
 
-      news.value.push(...res.data)
+      news.value.push(...res.items)
       hasMore.value = res.meta.hasMore
       currentPage.value++
     } catch (e: unknown) {
