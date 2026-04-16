@@ -20,15 +20,15 @@ export function useProducts() {
       const category = filterStore.activeCategory
       const params = new URLSearchParams({
         page: String(currentPage.value),
-        limit: String(LIMIT)
+        limit: String(LIMIT),
       })
-      if (category !== 'összes') params.set('category', category)
+      if (category !== 'osszes') params.set('category', category)
 
-      const res = await $fetch<{  Product[]; meta: { hasMore: boolean } }>(
+      const res = await $fetch<{ items: Product[]; meta: { hasMore: boolean } }>(
         `/api/products?${params}`
       )
 
-      products.value.push(...res.data)
+      products.value.push(...res.items)
       hasMore.value = res.meta.hasMore
       currentPage.value++
     } catch (e: unknown) {
@@ -47,9 +47,10 @@ export function useProducts() {
     await loadMore()
   }
 
-  watch(() => filterStore.activeCategory, () => {
-    resetAndLoad()
-  })
+  watch(
+    () => filterStore.activeCategory,
+    () => { resetAndLoad() },
+  )
 
   return { products, hasMore, loading, error, loadMore, resetAndLoad }
 }
