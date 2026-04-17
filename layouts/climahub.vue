@@ -68,13 +68,43 @@
         <!-- Right controls -->
         <div class="flex shrink-0 items-center gap-1">
           <SearchBar />
+
+          <!-- Dark/light mode toggle -->
           <button
             type="button"
             class="icon-btn"
-            data-theme-toggle
-            aria-label="Sötét/világos mód váltás"
+            aria-label="Sötét mód kapcsolása"
+            @click="toggleColorMode"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- Sun icon — light mode-ban látható -->
+            <svg
+              v-if="isDark"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="5" />
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+            <!-- Moon icon — dark mode-ban látható -->
+            <svg
+              v-else
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           </button>
@@ -93,6 +123,13 @@ import type { FilterCategory } from '~/types/climahub'
 import { useFilterStore } from '~/stores/filter'
 
 const filterStore = useFilterStore()
+const colorMode = useColorMode()
+
+const isDark = computed(() => colorMode.value === 'dark')
+
+function toggleColorMode() {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
 
 const categories: { value: FilterCategory; label: string }[] = [
   { value: 'összes', label: 'Összes' },
@@ -100,28 +137,6 @@ const categories: { value: FilterCategory; label: string }[] = [
   { value: 'hőszivattyú', label: 'Hőszivattyú' },
   { value: 'okos_otthon', label: 'Okos otthon' },
 ]
-
-onMounted(() => {
-  const toggle = document.querySelector('[data-theme-toggle]') as HTMLButtonElement | null
-  const html = document.documentElement
-  let theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  html.setAttribute('data-theme', theme)
-  setIcon(toggle, theme)
-
-  toggle?.addEventListener('click', () => {
-    theme = theme === 'dark' ? 'light' : 'dark'
-    html.setAttribute('data-theme', theme)
-    setIcon(toggle, theme)
-  })
-})
-
-function setIcon(btn: HTMLButtonElement | null, theme: string) {
-  if (!btn) return
-  btn.innerHTML =
-    theme === 'dark'
-      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
-      : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
-}
 </script>
 
 <style scoped>
@@ -135,9 +150,9 @@ function setIcon(btn: HTMLButtonElement | null, theme: string) {
   background: transparent;
   border: 1px solid transparent;
   transition:
-    color var(--transition-ui),
-    background var(--transition-ui),
-    border-color var(--transition-ui);
+    color var(--transition-interactive),
+    background var(--transition-interactive),
+    border-color var(--transition-interactive);
   white-space: nowrap;
 }
 .pill-btn:hover {
@@ -146,9 +161,10 @@ function setIcon(btn: HTMLButtonElement | null, theme: string) {
 }
 .pill-btn--active {
   color: var(--color-primary);
-  background: var(--color-primary-subtle);
+  background: var(--color-primary-highlight);
   border-color: color-mix(in oklch, var(--color-primary) 25%, transparent);
 }
+
 .icon-btn {
   display: flex;
   align-items: center;
@@ -159,12 +175,17 @@ function setIcon(btn: HTMLButtonElement | null, theme: string) {
   color: var(--color-text-muted);
   background: transparent;
   border: none;
+  opacity: 1;
   transition:
-    color var(--transition-ui),
-    background var(--transition-ui);
+    color var(--transition-interactive),
+    background var(--transition-interactive),
+    opacity 180ms ease;
 }
 .icon-btn:hover {
   color: var(--color-text);
   background: var(--color-surface-offset);
+}
+.icon-btn:active {
+  opacity: 0.6;
 }
 </style>
