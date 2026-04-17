@@ -8,10 +8,19 @@ export default defineNuxtConfig({
   css: ['~/assets/css/base.css'],
 
   modules: [
+    '@nuxtjs/color-mode',
     '@nuxtjs/supabase',
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
   ],
+
+  // Color mode: use data-theme attribute to match CSS token selectors
+  colorMode: {
+    preference: 'system',
+    fallback: 'light',
+    dataValue: 'theme',   // sets data-theme='dark' / data-theme='light'
+    classSuffix: '',
+  },
 
   // Edge runtime Vercelen
   nitro: {
