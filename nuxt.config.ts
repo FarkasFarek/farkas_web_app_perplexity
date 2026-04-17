@@ -4,8 +4,11 @@ export default defineNuxtConfig({
 
   devtools: { enabled: false },
 
-  // Global CSS — base.css imports tokens.css internally
-  css: ['~/assets/css/base.css'],
+  // Global CSS — sorrend fontos: tokens előbb, base utána
+  css: [
+    '~/assets/css/tokens.css',
+    '~/assets/css/base.css',
+  ],
 
   modules: [
     '@nuxtjs/color-mode',
@@ -14,11 +17,11 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
   ],
 
-  // Color mode: use data-theme attribute to match CSS token selectors
+  // Color mode: data-theme attribútum illeszkedik a tokens.css [data-theme='dark'] szelektorához
   colorMode: {
     preference: 'system',
     fallback: 'light',
-    dataValue: 'theme',   // sets data-theme='dark' / data-theme='light'
+    dataValue: 'theme',
     classSuffix: '',
   },
 
