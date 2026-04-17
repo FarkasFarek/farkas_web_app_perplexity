@@ -1,82 +1,60 @@
 <template>
-  <div class="min-h-screen" style="background: var(--color-bg); color: var(--color-text);">
+  <div style="background: var(--color-bg); color: var(--color-text); min-height: 100dvh;">
 
-    <!-- Sticky Navbar -->
-    <header
-      class="sticky top-0 z-50"
-      style="
-        background: color-mix(in oklch, var(--color-surface) 92%, transparent);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--color-divider);
-        box-shadow: var(--shadow-sm);
-      "
-    >
-      <div class="mx-auto flex max-w-7xl items-center gap-3 px-4" style="height: 56px;">
+    <!-- ===================== NAVBAR ===================== -->
+    <header class="ch-nav">
+      <div class="ch-nav__inner">
 
         <!-- Logo -->
-        <NuxtLink
-          to="/"
-          class="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80"
-          aria-label="ClimaHub főoldal"
-        >
+        <NuxtLink to="/" class="ch-nav__logo" aria-label="ClimaHub főoldal">
+          <!-- Hőhullám glyph -->
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 136 32"
-            width="136"
-            height="32"
-            aria-hidden="true"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
             fill="none"
+            aria-hidden="true"
           >
             <path
-              d="M4 20 Q8 11 12 20 Q16 29 20 20 Q24 11 28 20"
+              d="M2 16 Q5 9 8 16 Q11 23 14 16 Q17 9 20 16"
               stroke="var(--color-primary)"
-              stroke-width="2.5"
+              stroke-width="2.2"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
-            <text
-              x="36" y="22"
-              style="font-family: var(--font-body); font-size: 17px; font-weight: 700; letter-spacing: -0.4px;"
-              fill="var(--color-text)"
-            >Clima</text>
-            <text
-              x="84" y="22"
-              style="font-family: var(--font-body); font-size: 17px; font-weight: 400; letter-spacing: -0.2px;"
-              fill="var(--color-primary)"
-            >Hub</text>
           </svg>
+          <!-- Wordmark -->
+          <span class="ch-nav__wordmark">
+            <span class="ch-nav__wordmark-clima">Clima</span><span class="ch-nav__wordmark-hub">Hub</span>
+          </span>
         </NuxtLink>
 
         <!-- Filter pills -->
-        <nav
-          class="scrollbar-none flex flex-1 items-center gap-1 overflow-x-auto"
-          aria-label="Kategória szűrő"
-        >
+        <nav class="ch-nav__pills" aria-label="Kategória szűrő">
           <button
             v-for="cat in categories"
             :key="cat.value"
             type="button"
-            class="pill-btn"
-            :class="{ 'pill-btn--active': filterStore.activeCategory === cat.value }"
+            class="ch-pill"
+            :class="{ 'ch-pill--active': filterStore.activeCategory === cat.value }"
             @click="filterStore.setCategory(cat.value)"
           >
             {{ cat.label }}
           </button>
         </nav>
 
-        <!-- Right controls -->
-        <div class="flex shrink-0 items-center gap-1">
+        <!-- Right side: search + toggle -->
+        <div class="ch-nav__right">
           <SearchBar />
 
-          <!-- Dark/light mode toggle -->
           <button
             type="button"
-            class="icon-btn"
+            class="ch-toggle"
             aria-label="Sötét mód kapcsolása"
             @click="toggleColorMode"
           >
-            <!-- Sun icon — light mode-ban látható -->
+            <!-- Nap — dark módban mutatjuk (kiértékelésre váró ikont mutat light-ra) -->
             <svg
               v-if="isDark"
               width="20"
@@ -92,7 +70,7 @@
               <circle cx="12" cy="12" r="5" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
             </svg>
-            <!-- Moon icon — dark mode-ban látható -->
+            <!-- Hold — light módban mutatjuk -->
             <svg
               v-else
               width="20"
@@ -112,6 +90,7 @@
 
       </div>
     </header>
+    <!-- ==================== /NAVBAR ==================== -->
 
     <main><slot /></main>
 
@@ -132,40 +111,131 @@ function toggleColorMode() {
 }
 
 const categories: { value: FilterCategory; label: string }[] = [
-  { value: 'összes', label: 'Összes' },
-  { value: 'klíma', label: 'Klíma' },
+  { value: 'összes',      label: 'Összes' },
+  { value: 'klíma',       label: 'Klíma' },
   { value: 'hőszivattyú', label: 'Hőszivattyú' },
   { value: 'okos_otthon', label: 'Okos otthon' },
 ]
 </script>
 
 <style scoped>
-.pill-btn {
-  flex-shrink: 0;
-  border-radius: var(--radius-full);
-  padding: 0.3rem 0.85rem;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text-muted);
-  background: transparent;
-  border: 1px solid transparent;
-  transition:
-    color var(--transition-interactive),
-    background var(--transition-interactive),
-    border-color var(--transition-interactive);
-  white-space: nowrap;
-}
-.pill-btn:hover {
-  color: var(--color-text);
-  background: var(--color-surface-offset);
-}
-.pill-btn--active {
-  color: var(--color-primary);
-  background: var(--color-primary-highlight);
-  border-color: color-mix(in oklch, var(--color-primary) 25%, transparent);
+/* ============================================================
+ * Navbar shell
+ * ============================================================ */
+.ch-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in oklch, var(--color-bg) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.icon-btn {
+.ch-nav__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: 80rem;       /* 1280px — matches Tailwind max-w-7xl */
+  margin-inline: auto;
+  /* Desktop padding */
+  padding: var(--space-3) var(--space-6);
+}
+
+@media (max-width: 640px) {
+  .ch-nav__inner {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* ============================================================
+ * Logo
+ * ============================================================ */
+.ch-nav__logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  opacity: 1;
+  transition: opacity var(--transition-interactive);
+}
+.ch-nav__logo:hover { opacity: 0.75; }
+
+.ch-nav__wordmark {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.ch-nav__wordmark-clima {
+  color: var(--color-text);
+  font-weight: 400;
+}
+.ch-nav__wordmark-hub {
+  color: var(--color-primary);
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* ============================================================
+ * Filter pill row
+ * ============================================================ */
+.ch-nav__pills {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE/Edge */
+}
+.ch-nav__pills::-webkit-scrollbar { display: none; }
+
+/* ---- Individual pill ---- */
+.ch-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  transition:
+    color var(--transition-interactive),
+    background-color var(--transition-interactive),
+    border-color var(--transition-interactive);
+}
+
+.ch-pill:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.ch-pill--active {
+  background: var(--color-primary-highlight);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ============================================================
+ * Right controls
+ * ============================================================ */
+.ch-nav__right {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---- Toggle button ---- */
+.ch-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -174,18 +244,19 @@ const categories: { value: FilterCategory; label: string }[] = [
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
+  cursor: pointer;
   opacity: 1;
   transition:
     color var(--transition-interactive),
-    background var(--transition-interactive),
+    background-color var(--transition-interactive),
+    border-color var(--transition-interactive),
     opacity 180ms ease;
 }
-.icon-btn:hover {
+.ch-toggle:hover {
   color: var(--color-text);
   background: var(--color-surface-offset);
+  border-color: var(--color-border);
 }
-.icon-btn:active {
-  opacity: 0.6;
-}
+.ch-toggle:active { opacity: 0.55; }
 </style>
