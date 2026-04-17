@@ -4,8 +4,8 @@ export default defineNuxtConfig({
 
   devtools: { enabled: false },
 
-  // Global CSS: design tokens + base reset
-  css: ['~/assets/css/tokens.css'],
+  // Global CSS — base.css imports tokens.css internally
+  css: ['~/assets/css/base.css'],
 
   modules: [
     '@nuxtjs/supabase',
