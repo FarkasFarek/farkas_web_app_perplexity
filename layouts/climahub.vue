@@ -1,81 +1,90 @@
 <template>
-  <div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+  <div class="min-h-screen" style="background: var(--color-bg); color: var(--color-text);">
+
     <!-- Sticky Navbar -->
-    <header class="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-surface)]/90 backdrop-blur-sm">
-      <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
+    <header
+      class="sticky top-0 z-50"
+      style="
+        background: color-mix(in oklch, var(--color-surface) 92%, transparent);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--color-divider);
+        box-shadow: var(--shadow-sm);
+      "
+    >
+      <div class="mx-auto flex max-w-7xl items-center gap-3 px-4" style="height: 56px;">
+
         <!-- Logo -->
-        <NuxtLink to="/" class="flex shrink-0 items-center gap-2">
+        <NuxtLink
+          to="/"
+          class="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80"
+          aria-label="ClimaHub főoldal"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 120 32"
-            width="120"
+            viewBox="0 0 136 32"
+            width="136"
             height="32"
-            aria-label="ClimaHub"
+            aria-hidden="true"
             fill="none"
           >
-            <!-- Heat wave motif -->
             <path
-              d="M4 20 Q8 12 12 20 Q16 28 20 20 Q24 12 28 20"
-              stroke="currentColor"
+              d="M4 20 Q8 11 12 20 Q16 29 20 20 Q24 11 28 20"
+              stroke="var(--color-primary)"
               stroke-width="2.5"
               stroke-linecap="round"
-              class="text-teal-600 dark:text-teal-400"
+              stroke-linejoin="round"
             />
             <text
-              x="36"
-              y="22"
-              font-family="system-ui, sans-serif"
-              font-size="16"
-              font-weight="700"
-              fill="currentColor"
-              letter-spacing="-0.5"
-            >ClimaHub</text>
+              x="36" y="22"
+              style="font-family: var(--font-body); font-size: 17px; font-weight: 700; letter-spacing: -0.4px;"
+              fill="var(--color-text)"
+            >Clima</text>
+            <text
+              x="84" y="22"
+              style="font-family: var(--font-body); font-size: 17px; font-weight: 400; letter-spacing: -0.2px;"
+              fill="var(--color-primary)"
+            >Hub</text>
           </svg>
         </NuxtLink>
 
-        <!-- Filter pills (horizontally scrollable on mobile) -->
+        <!-- Filter pills -->
         <nav
-          class="flex flex-1 gap-2 overflow-x-auto scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none]"
+          class="scrollbar-none flex flex-1 items-center gap-1 overflow-x-auto"
           aria-label="Kategória szűrő"
         >
           <button
             v-for="cat in categories"
             :key="cat.value"
             type="button"
-            class="shrink-0 rounded-full px-3 py-1 text-sm font-medium transition-colors"
-            :class="
-              filterStore.activeCategory === cat.value
-                ? 'bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400'
-                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-            "
+            class="pill-btn"
+            :class="{ 'pill-btn--active': filterStore.activeCategory === cat.value }"
             @click="filterStore.setCategory(cat.value)"
           >
             {{ cat.label }}
           </button>
         </nav>
 
-        <!-- Right: search + dark mode toggle -->
-        <div class="flex shrink-0 items-center gap-2">
+        <!-- Right controls -->
+        <div class="flex shrink-0 items-center gap-1">
           <SearchBar />
-
           <button
             type="button"
+            class="icon-btn"
             data-theme-toggle
             aria-label="Sötét/világos mód váltás"
-            class="rounded-md p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-offset)]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           </button>
         </div>
+
       </div>
     </header>
 
-    <!-- Main content — single scroll region -->
-    <main>
-      <slot />
-    </main>
+    <main><slot /></main>
+
   </div>
 </template>
 
@@ -89,25 +98,24 @@ const categories: { value: FilterCategory; label: string }[] = [
   { value: 'összes', label: 'Összes' },
   { value: 'klíma', label: 'Klíma' },
   { value: 'hőszivattyú', label: 'Hőszivattyú' },
-  { value: 'okos_otthon', label: 'Okos otthon' }
+  { value: 'okos_otthon', label: 'Okos otthon' },
 ]
 
-// Dark/light mode toggle (data-theme on <html>)
 onMounted(() => {
   const toggle = document.querySelector('[data-theme-toggle]') as HTMLButtonElement | null
   const html = document.documentElement
   let theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   html.setAttribute('data-theme', theme)
-  updateIcon(toggle, theme)
+  setIcon(toggle, theme)
 
   toggle?.addEventListener('click', () => {
     theme = theme === 'dark' ? 'light' : 'dark'
     html.setAttribute('data-theme', theme)
-    updateIcon(toggle, theme)
+    setIcon(toggle, theme)
   })
 })
 
-function updateIcon(btn: HTMLButtonElement | null, theme: string) {
+function setIcon(btn: HTMLButtonElement | null, theme: string) {
   if (!btn) return
   btn.innerHTML =
     theme === 'dark'
@@ -115,3 +123,48 @@ function updateIcon(btn: HTMLButtonElement | null, theme: string) {
       : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
 }
 </script>
+
+<style scoped>
+.pill-btn {
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  padding: 0.3rem 0.85rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  transition:
+    color var(--transition-ui),
+    background var(--transition-ui),
+    border-color var(--transition-ui);
+  white-space: nowrap;
+}
+.pill-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-offset);
+}
+.pill-btn--active {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  border-color: color-mix(in oklch, var(--color-primary) 25%, transparent);
+}
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  transition:
+    color var(--transition-ui),
+    background var(--transition-ui);
+}
+.icon-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-offset);
+}
+</style>
