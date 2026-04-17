@@ -4,6 +4,9 @@ export default defineNuxtConfig({
 
   devtools: { enabled: false },
 
+  // Global CSS: design tokens + base reset
+  css: ['~/assets/css/tokens.css'],
+
   modules: [
     '@nuxtjs/supabase',
     '@pinia/nuxt',
@@ -16,8 +19,6 @@ export default defineNuxtConfig({
   },
 
   supabase: {
-    // Redirect automatikus auth guard kikapcsolva –
-    // middleware/auth.ts kezeli manuálisan
     redirect: false,
     redirectOptions: {
       login: '/login',
@@ -27,11 +28,8 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // Csak szerveroldali (nem kerül a kliens bundlebe)
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     secretKey: process.env.NUXT_SECRET_KEY,
-
-    // Publikus (kliens és szerver is látja)
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
       supabaseUrl: process.env.SUPABASE_URL ?? '',
