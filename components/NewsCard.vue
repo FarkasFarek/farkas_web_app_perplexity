@@ -1,27 +1,37 @@
 <template>
-  <!-- Skeleton -->
+  <!-- ── Skeleton ── -->
   <div
     v-if="!news"
-    class="news-card news-card--skeleton"
+    class="nc nc--skeleton"
     aria-hidden="true"
   >
-    <div class="news-card__img-placeholder" />
-    <div class="news-card__body" style="gap: var(--space-2);">
-      <div class="skel skel--short" />
-      <div class="skel" />
-      <div class="skel skel--med" />
-      <div class="skel skel--short" style="margin-top: var(--space-2);" />
+    <div class="nc__img-wrap nc__img-wrap--skel" />
+    <div class="nc__body">
+      <div class="skel skel--badge" />
+      <div class="skel skel--title" />
+      <div class="skel skel--title skel--title-short" />
+      <div class="skel skel--line" />
+      <div class="skel skel--line skel--line-med" />
+      <div class="skel skel--line skel--line-short" />
+      <div class="nc__footer" style="margin-top: var(--space-3);">
+        <div class="skel skel--foot" />
+        <div class="skel skel--foot" />
+      </div>
     </div>
   </div>
 
-  <!-- Content -->
-  <article v-else class="news-card">
+  <!-- ── Content ── -->
+  <article
+    v-else
+    class="nc"
+    @click="$emit('click', news)"
+  >
     <!-- Image -->
     <a
       :href="news.source_url"
       target="_blank"
       rel="noopener noreferrer"
-      class="news-card__img-link"
+      class="nc__img-wrap"
       :aria-label="news.title"
       tabindex="-1"
     >
@@ -31,16 +41,27 @@
         :alt="news.title"
         loading="lazy"
         decoding="async"
-        class="news-card__img"
+        class="nc__img"
         @error="handleImgError"
       />
+      <!-- Fallback: teal→slate gradient + newspaper icon -->
       <div
         v-else
-        class="news-card__img-fallback"
+        class="nc__img-fallback"
         role="img"
         :aria-label="news.title"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="opacity: 0.55;">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="36"
+          height="36"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="#ffffff"
+          stroke-width="1.4"
+          aria-hidden="true"
+          style="opacity: 0.85;"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2z" />
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 9h6M9 13h6M9 17h4" />
         </svg>
@@ -48,11 +69,11 @@
     </a>
 
     <!-- Body -->
-    <div class="news-card__body">
-      <!-- Meta row -->
-      <div class="news-card__meta">
-        <span class="news-badge" :class="badgeClass">{{ categoryLabel }}</span>
-        <time :datetime="news.published_at" class="news-card__time">{{ timeAgo }}</time>
+    <div class="nc__body">
+      <!-- Badge + time -->
+      <div class="nc__meta">
+        <span class="nc__badge" :class="badgeClass">{{ categoryLabel }}</span>
+        <time :datetime="news.published_at" class="nc__time">{{ timeAgo }}</time>
       </div>
 
       <!-- Title -->
@@ -60,16 +81,17 @@
         :href="news.source_url"
         target="_blank"
         rel="noopener noreferrer"
-        class="news-card__title"
-      >
-        {{ news.title }}
-      </a>
+        class="nc__title"
+      >{{ news.title }}</a>
 
       <!-- Summary -->
-      <p v-if="news.summary" class="news-card__summary">{{ news.summary }}</p>
+      <p v-if="news.summary" class="nc__summary">{{ news.summary }}</p>
 
-      <!-- Source -->
-      <p class="news-card__source">{{ news.source_name }}</p>
+      <!-- Footer: source | date -->
+      <div class="nc__footer">
+        <span class="nc__source">{{ news.source_name }}</span>
+        <time :datetime="news.published_at" class="nc__date">{{ timeAgo }}</time>
+      </div>
     </div>
   </article>
 </template>
@@ -78,21 +100,22 @@
 import type { NewsItem } from '~/types/climahub'
 
 const props = defineProps<{ news?: NewsItem }>()
+defineEmits<{ (e: 'click', news: NewsItem): void }>()
 
 const badgeClass = computed(() => {
   if (!props.news) return ''
   const map: Record<string, string> = {
-    'kl\u00edma':       'news-badge--klima',
-    'h\u0151szivatty\u00fa': 'news-badge--ho',
-    'okos_otthon': 'news-badge--smart',
+    'klíma':       'nc__badge--klima',
+    'hőszivattyú': 'nc__badge--ho',
+    'okos_otthon': 'nc__badge--smart',
   }
   return map[props.news.category] ?? ''
 })
 
 const categoryLabel = computed(() => {
   const map: Record<string, string> = {
-    'kl\u00edma':       'Kl\u00edma',
-    'h\u0151szivatty\u00fa': 'H\u0151szivatty\u00fa',
+    'klíma':       'Klíma',
+    'hőszivattyú': 'Hőszivattyú',
     'okos_otthon': 'Okos otthon',
   }
   return props.news ? (map[props.news.category] ?? props.news.category) : ''
@@ -105,7 +128,7 @@ const timeAgo = computed(() => {
   const h = Math.floor(diff / 3600000)
   const m = Math.floor(diff / 60000)
   if (d > 0) return `${d} napja`
-  if (h > 0) return `${h} \u00f3r\u00e1ja`
+  if (h > 0) return `${h} órája`
   if (m > 0) return `${m} perce`
   return 'most'
 })
@@ -116,120 +139,136 @@ function handleImgError(e: Event) {
 </script>
 
 <style scoped>
-/* --- Card shell --- */
-.news-card {
+/* ─────────────────────────────────────────
+   Card shell
+───────────────────────────────────────── */
+.nc {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  cursor: pointer;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   transition:
-    box-shadow var(--transition-ui),
-    transform var(--transition-ui),
-    border-color var(--transition-ui);
+    transform var(--transition-interactive),
+    box-shadow var(--transition-interactive),
+    border-color var(--transition-interactive);
 }
-.news-card:not(.news-card--skeleton):hover {
-  box-shadow: var(--shadow-card-hover);
+.nc:not(.nc--skeleton):hover {
   transform: translateY(-2px);
-  border-color: color-mix(in oklch, var(--color-primary) 20%, var(--color-border));
+  box-shadow: var(--shadow-md);
 }
 
-/* --- Skeleton --- */
-.news-card--skeleton { pointer-events: none; }
-.news-card__img-placeholder {
-  aspect-ratio: 16 / 9;
-  background: var(--color-surface-offset);
-  animation: shimmer 1.5s ease-in-out infinite;
-  background-size: 200% 100%;
-  background-image: linear-gradient(
-    90deg,
-    var(--color-surface-offset) 25%,
-    var(--color-divider) 50%,
-    var(--color-surface-offset) 75%
-  );
-}
-.skel {
-  height: 0.9em;
-  border-radius: var(--radius-sm);
-  background-image: linear-gradient(
-    90deg,
-    var(--color-surface-offset) 25%,
-    var(--color-divider) 50%,
-    var(--color-surface-offset) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-.skel--short { width: 38%; }
-.skel--med   { width: 72%; }
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-}
-
-/* --- Image area --- */
-.news-card__img-link {
+/* ─────────────────────────────────────────
+   Image area
+───────────────────────────────────────── */
+.nc__img-wrap {
   display: block;
-  position: relative;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--color-surface-offset);
+  flex-shrink: 0;
 }
-.news-card__img {
+.nc__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.news-card:hover .news-card__img { transform: scale(1.04); }
+.nc:hover .nc__img { transform: scale(1.04); }
 
-.news-card__img-fallback {
+/* Fallback: teal → slate gradient + white icon */
+.nc__img-fallback {
   display: flex;
   width: 100%;
   height: 100%;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklch, var(--color-primary) 12%, var(--color-surface-offset)),
-    color-mix(in oklch, var(--color-primary) 6%,  var(--color-surface-offset))
-  );
-  color: var(--color-primary);
+  background: linear-gradient(135deg, #01696f 0%, #4a5568 100%);
 }
 
-/* --- Body --- */
-.news-card__body {
+/* ─────────────────────────────────────────
+   Body
+───────────────────────────────────────── */
+.nc__body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--space-2);
   padding: var(--space-4);
+  gap: var(--space-2);
 }
-.news-card__meta {
+
+/* Meta row: badge left, time right */
+.nc__meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
 }
-.news-card__time {
+.nc__time {
   font-size: var(--text-xs);
   color: var(--color-text-faint);
 }
-.news-card__title {
-  font-size: var(--text-base);
-  font-weight: 600;
-  line-height: 1.35;
+
+/* ─────────────────────────────────────────
+   Category badge
+───────────────────────────────────────── */
+.nc__badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Klíma — blue */
+.nc__badge--klima { background: #c6d8e4; color: #006494; }
+.dark .nc__badge--klima { background: #3a4550; color: #5591c7; }
+@media (prefers-color-scheme: dark) {
+  :root:not(.dark):not(.light) .nc__badge--klima { background: #3a4550; color: #5591c7; }
+}
+
+/* Hőszivattyú — orange */
+.nc__badge--ho { background: #e7d7c4; color: #da7101; }
+.dark .nc__badge--ho { background: #564b3e; color: #fdab43; }
+@media (prefers-color-scheme: dark) {
+  :root:not(.dark):not(.light) .nc__badge--ho { background: #564b3e; color: #fdab43; }
+}
+
+/* Okos otthon — green */
+.nc__badge--smart { background: #d4dfcc; color: #437a22; }
+.dark .nc__badge--smart { background: #3a4435; color: #6daa45; }
+@media (prefers-color-scheme: dark) {
+  :root:not(.dark):not(.light) .nc__badge--smart { background: #3a4435; color: #6daa45; }
+}
+
+/* ─────────────────────────────────────────
+   Title
+───────────────────────────────────────── */
+.nc__title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: var(--text-lg);
+  font-weight: 400;
+  line-height: 1.3;
   color: var(--color-text);
+  margin: var(--space-2) 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  transition: color var(--transition-ui);
+  transition: color var(--transition-interactive);
 }
-.news-card__title:hover { color: var(--color-primary); }
+.nc__title:hover { color: var(--color-primary); }
 
-.news-card__summary {
+/* ─────────────────────────────────────────
+   Summary
+───────────────────────────────────────── */
+.nc__summary {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   line-height: 1.55;
@@ -239,40 +278,59 @@ function handleImgError(e: Event) {
   overflow: hidden;
   max-width: none;
 }
-.news-card__source {
-  margin-top: auto;
+
+/* ─────────────────────────────────────────
+   Footer row: source | relative date
+───────────────────────────────────────── */
+.nc__footer {
+  margin-top: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--text-xs);
   color: var(--color-text-faint);
+  flex-wrap: nowrap;
+}
+.nc__source {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nc__date { white-space: nowrap; flex-shrink: 0; }
+
+/* ─────────────────────────────────────────
+   Skeleton
+───────────────────────────────────────── */
+.nc--skeleton { pointer-events: none; }
+
+.nc__img-wrap--skel {
+  animation: nc-pulse 1.5s ease-in-out infinite;
 }
 
-/* --- Category badges --- */
-.news-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--radius-full);
-  padding: 0.15rem 0.55rem;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  line-height: 1.5;
+.skel {
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-offset);
+  animation: nc-pulse 1.5s ease-in-out infinite;
 }
-.news-badge--klima {
-  background: color-mix(in oklch, #006494 12%, transparent);
-  color: #006494;
-}
-.news-badge--ho {
-  background: color-mix(in oklch, #da7101 12%, transparent);
-  color: #da7101;
-}
-.news-badge--smart {
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
-}
-[data-theme='dark'] .news-badge--klima {
-  background: color-mix(in oklch, #5591c7 15%, transparent);
-  color: #5591c7;
-}
-[data-theme='dark'] .news-badge--ho {
-  background: color-mix(in oklch, #fdab43 12%, transparent);
-  color: #fdab43;
+
+/* Badge skeleton */
+.skel--badge  { height: 1.1em; width: 5rem; border-radius: var(--radius-full); }
+
+/* Title skeletons */
+.skel--title       { height: 1.3em; width: 90%; margin-top: var(--space-2); }
+.skel--title-short { width: 60%; margin-top: var(--space-1); }
+
+/* Summary lines */
+.skel--line       { height: 0.85em; width: 100%; margin-top: var(--space-1); }
+.skel--line-med   { width: 80%; }
+.skel--line-short { width: 55%; }
+
+/* Footer */
+.skel--foot { height: 0.75em; width: 4.5rem; }
+
+@keyframes nc-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
 }
 </style>
