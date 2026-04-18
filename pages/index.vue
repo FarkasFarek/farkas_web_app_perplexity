@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { useNews } from '~/composables/useNews'
-import { useProducts } from '~/composables/useProducts'
 import { useInfiniteScroll } from '~/composables/useInfiniteScroll'
 
-// Nyilvános oldal — nincs auth middleware
 definePageMeta({ layout: 'climahub' })
 
 const {
@@ -14,17 +12,8 @@ const {
 } = useNews()
 const { sentinelRef: newsSentinelRef } = useInfiniteScroll(newsLoadMore, newsHasMore)
 
-const {
-  products,
-  hasMore: productsHasMore,
-  loading: productsLoading,
-  loadMore: productsLoadMore,
-} = useProducts()
-const { sentinelRef: productSentinelRef } = useInfiniteScroll(productsLoadMore, productsHasMore)
-
 onMounted(() => {
   void newsLoadMore()
-  void productsLoadMore()
 })
 
 const SKELETON_COUNT = 6
@@ -32,15 +21,18 @@ const SKELETON_COUNT = 6
 
 <template>
   <div class="home-page">
+
+    <!-- Hero -->
     <section class="home-hero">
       <div class="home-hero__inner">
         <h1 class="home-hero__title">Klíma, hőszivattyú és okos otthon — egy helyen.</h1>
         <p class="home-hero__text">
-          A legfrissebb termékek és hírek a klímatechnika világából.
+          A legfrissebb hírek a klímatechnika világából.
         </p>
       </div>
     </section>
 
+    <!-- Hírek -->
     <div class="home-shell">
       <section id="hirek" class="home-section">
         <h2 class="home-section__title">Legfrissebb hírek</h2>
@@ -56,38 +48,12 @@ const SKELETON_COUNT = 6
 
         <div ref="newsSentinelRef" class="home-sentinel" />
 
-        <p
-          v-if="!newsHasMore && news.length > 0"
-          class="home-end-message"
-        >
-          Nincs több tartalom
-        </p>
-      </section>
-
-      <div class="home-divider" aria-hidden="true"></div>
-
-      <section id="termekek" class="home-section">
-        <h2 class="home-section__title">Termékek</h2>
-
-        <div class="product-grid">
-          <template v-if="productsLoading && products.length === 0">
-            <ProductCard v-for="n in SKELETON_COUNT" :key="`product-sk-${n}`" />
-          </template>
-          <template v-else>
-            <ProductCard v-for="item in products" :key="item.id" :product="item" />
-          </template>
-        </div>
-
-        <div ref="productSentinelRef" class="home-sentinel" />
-
-        <p
-          v-if="!productsHasMore && products.length > 0"
-          class="home-end-message"
-        >
+        <p v-if="!newsHasMore && news.length > 0" class="home-end-message">
           Nincs több tartalom
         </p>
       </section>
     </div>
+
   </div>
 </template>
 
@@ -146,19 +112,10 @@ const SKELETON_COUNT = 6
   gap: var(--space-4);
 }
 
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
-  gap: var(--space-4);
+.home-sentinel {
+  height: 4px;
 }
 
-.home-divider {
-  margin: var(--space-16) 0;
-  height: 1px;
-  background: var(--color-divider);
-}
-
-.home-sentinel,
 .home-end-message {
   text-align: center;
   color: var(--color-text-faint);
@@ -166,19 +123,13 @@ const SKELETON_COUNT = 6
   padding: var(--space-8);
 }
 
-.home-sentinel {
-  height: auto;
-}
-
 @media (max-width: 640px) {
   .home-hero {
     padding: var(--space-8) var(--space-4);
   }
-
   .home-shell {
     padding: 0 var(--space-4) var(--space-12);
   }
-
   .home-hero__title {
     max-width: none;
   }
