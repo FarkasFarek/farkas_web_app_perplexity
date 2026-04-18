@@ -30,181 +30,210 @@ async function handleLogin() {
 </script>
 
 <template>
-  <main class="login-page">
-    <div class="login-card">
+  <div class="lp-page">
+    <div class="lp-card">
 
-      <!-- Logo -->
-      <div class="login-logo" aria-hidden="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 136 32" width="136" height="32" fill="none">
-          <path d="M4 20 Q8 11 12 20 Q16 29 20 20 Q24 11 28 20"
-            stroke="var(--color-primary)" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round" />
-          <text x="36" y="22"
-            style="font-family: var(--font-body); font-size: 17px; font-weight: 700; letter-spacing: -0.4px;"
+      <!-- Logó -->
+      <div class="lp-logo" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 148 32" width="148" height="32" fill="none">
+          <svg x="0" y="4" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M2 16 Q5 9 8 16 Q11 23 14 16 Q17 9 20 16"
+              stroke="var(--color-primary)"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <text x="32" y="22"
+            style="font-family: var(--font-body, sans-serif); font-size: 18px; font-weight: 700; letter-spacing: -0.4px;"
             fill="var(--color-text)">Clima</text>
-          <text x="84" y="22"
-            style="font-family: var(--font-body); font-size: 17px; font-weight: 400; letter-spacing: -0.2px;"
+          <text x="86" y="22"
+            style="font-family: var(--font-body, sans-serif); font-size: 18px; font-weight: 400; font-style: italic;"
             fill="var(--color-primary)">Hub</text>
         </svg>
       </div>
 
-      <h1 class="login-title">Bejelentkezés</h1>
-      <p class="login-sub">Klíma és hőszivattyú szakmai portál</p>
+      <!-- Cím -->
+      <h1 class="lp-title">Bejelentkezés</h1>
 
-      <form class="login-form" @submit.prevent="handleLogin">
-        <div class="field">
-          <label for="email" class="field__label">E-mail cím</label>
+      <!-- Form -->
+      <form class="lp-form" @submit.prevent="handleLogin" novalidate>
+
+        <div class="lp-field">
+          <label for="email" class="lp-label">E-mail cím</label>
           <input
             id="email"
             v-model="email"
             type="email"
             required
             autocomplete="email"
-            class="field__input"
+            class="lp-input"
             placeholder="pelda@climahub.hu"
+            :disabled="loading"
           />
         </div>
 
-        <div class="field">
-          <label for="password" class="field__label">Jelszó</label>
+        <div class="lp-field">
+          <label for="password" class="lp-label">Jelszó</label>
           <input
             id="password"
             v-model="password"
             type="password"
             required
             autocomplete="current-password"
-            class="field__input"
+            class="lp-input"
+            :disabled="loading"
           />
         </div>
 
-        <p v-if="error" class="login-error" role="alert">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-          </svg>
+        <p v-if="error" class="lp-error" role="alert">
           {{ error }}
         </p>
 
-        <button
-          type="submit"
-          :disabled="loading"
-          class="login-submit"
-        >
-          {{ loading ? 'Belépés...' : 'Belépés' }}
+        <button type="submit" class="lp-submit" :disabled="loading">
+          <template v-if="loading">
+            <svg class="lp-spinner" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+            </svg>
+            Belépés...
+          </template>
+          <template v-else>
+            Belépés
+          </template>
         </button>
-      </form>
 
+      </form>
     </div>
-  </main>
+  </div>
 </template>
 
 <style scoped>
-.login-page {
-  display: flex;
+/* ── Oldal háttér ────────────────────────────────────────── */
+.lp-page {
   min-height: 100dvh;
+  display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg);
   padding: var(--space-4);
+  background:
+    radial-gradient(circle at top left, oklch(from var(--color-primary) l c h / 0.07), transparent 45%),
+    var(--color-bg);
 }
 
-.login-card {
-  width: 100%;
-  max-width: 420px;
+/* ── Kártya ───────────────────────────────────────────────── */
+.lp-card {
+  width: min(400px, 90vw);
+  padding: var(--space-8);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  padding: var(--space-8) var(--space-8);
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
-.login-logo {
+/* ── Logó ────────────────────────────────────────────────── */
+.lp-logo {
   display: flex;
   justify-content: center;
-  margin-bottom: var(--space-2);
 }
 
-.login-title {
+/* ── Cím ─────────────────────────────────────────────────── */
+.lp-title {
+  margin: 0;
   font-family: 'Instrument Serif', Georgia, serif;
   font-size: var(--text-xl);
   font-weight: 400;
   color: var(--color-text);
   text-align: center;
-  margin: 0;
+  line-height: 1.15;
 }
 
-.login-sub {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  text-align: center;
-  margin: 0;
-  max-width: none;
-}
-
-.login-form {
+/* ── Form ────────────────────────────────────────────────── */
+.lp-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  margin-top: var(--space-2);
 }
 
-.field {
+.lp-field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-.field__label {
+.lp-label {
   font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: var(--color-text);
 }
 
-.field__input {
+.lp-input {
   width: 100%;
+  padding: var(--space-2) var(--space-3);
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   color: var(--color-text);
-  transition: border-color var(--transition-interactive), box-shadow var(--transition-interactive);
+  transition:
+    border-color var(--transition-interactive),
+    box-shadow var(--transition-interactive);
 }
-.field__input::placeholder { color: var(--color-text-faint); }
-.field__input:focus {
+.lp-input::placeholder {
+  color: var(--color-text-faint);
+}
+.lp-input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-highlight);
   outline: none;
 }
+.lp-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
-.login-error {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+/* ── Hibaüzenett ─────────────────────────────────────────── */
+.lp-error {
+  margin-top: var(--space-2);
   font-size: var(--text-sm);
   color: var(--color-error);
-  background: var(--color-error-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
   max-width: none;
 }
 
-.login-submit {
-  display: block;
+/* ── Submit ──────────────────────────────────────────────── */
+.lp-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   width: 100%;
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   background: var(--color-primary);
   color: #fff;
+  border: none;
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: 600;
-  text-align: center;
   cursor: pointer;
-  border: none;
-  transition: background var(--transition-interactive);
+  transition: background var(--transition-interactive), opacity var(--transition-interactive);
 }
-.login-submit:hover:not(:disabled) { background: var(--color-primary-hover); }
-.login-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+.lp-submit:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+.lp-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ── Spinner animáció ───────────────────────────────────── */
+@keyframes lp-spin {
+  to { transform: rotate(360deg); }
+}
+.lp-spinner {
+  animation: lp-spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
 </style>
