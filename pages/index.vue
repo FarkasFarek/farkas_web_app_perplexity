@@ -3,6 +3,7 @@ import { useNews } from '~/composables/useNews'
 import { useProducts } from '~/composables/useProducts'
 import { useInfiniteScroll } from '~/composables/useInfiniteScroll'
 
+// Nyilvános oldal — nincs auth middleware
 definePageMeta({ layout: 'climahub' })
 
 const {
@@ -31,8 +32,10 @@ const SKELETON_COUNT = 6
 
 <template>
   <div class="mx-auto max-w-7xl space-y-16 px-4 py-8">
+
+    <!-- Hírek -->
     <section id="hirek">
-      <h2 class="mb-6 text-xl font-bold text-[var(--color-text)]">Újdonságok</h2>
+      <h2 class="mb-6 text-xl font-bold" style="color: var(--color-text);">Újdonságok</h2>
 
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <template v-if="newsLoading && news.length === 0">
@@ -47,14 +50,16 @@ const SKELETON_COUNT = 6
 
       <p
         v-if="!newsHasMore && news.length > 0"
-        class="mt-6 text-center text-sm text-[var(--color-text-faint)]"
+        class="mt-6 text-center text-sm"
+        style="color: var(--color-text-faint);"
       >
         Nincs több tartalom
       </p>
     </section>
 
+    <!-- Termékek -->
     <section id="termekek">
-      <h2 class="mb-6 text-xl font-bold text-[var(--color-text)]">Ajánlott termékek</h2>
+      <h2 class="mb-6 text-xl font-bold" style="color: var(--color-text);">Ajánlott termékek</h2>
 
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <template v-if="productsLoading && products.length === 0">
@@ -69,10 +74,12 @@ const SKELETON_COUNT = 6
 
       <p
         v-if="!productsHasMore && products.length > 0"
-        class="mt-6 text-center text-sm text-[var(--color-text-faint)]"
+        class="mt-6 text-center text-sm"
+        style="color: var(--color-text-faint);"
       >
         Nincs több tartalom
       </p>
     </section>
+
   </div>
 </template>
