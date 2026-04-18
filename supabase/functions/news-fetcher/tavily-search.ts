@@ -38,6 +38,14 @@ interface TavilySearchResponse {
   results?: unknown
 }
 
+const PRIMARY_SCORE_THRESHOLD = 0.4
+const FALLBACK_SCORE_THRESHOLD = 0.01
+
+interface MappedCandidate {
+  item: NewsItem
+  score: number
+}
+
 const isValidUrl = (value: string): boolean => {
   try {
     // eslint-disable-next-line no-new
@@ -51,12 +59,16 @@ const isValidUrl = (value: string): boolean => {
 const mapTavilyResult = (
   result: TavilySearchResult,
   category: NewsItem['category'],
-): NewsItem | null => {
-  if (typeof result.score !== 'number' || result.score <= 0.4) {
+): MappedCandidate | null => {
+  if (typeof result.score !== 'number' || !Number.isFinite(result.score)) {
     return null
   }
 
   if (typeof result.url !== 'string' || !isValidUrl(result.url)) {
+    return null
+  }
+
+  if (typeof result.title !== 'string' || result.title.trim().length === 0) {
     return null
   }
 
@@ -65,15 +77,18 @@ const mapTavilyResult = (
   const firstImage = images[0]
 
   return {
-    title: typeof result.title === 'string' ? result.title : '',
-    source_url: result.url,
-    summary: typeof result.content === 'string' ? result.content : '',
-    source_name: parsedUrl.hostname.replace('www.', ''),
-    image_url: typeof firstImage === 'string' ? firstImage : null,
-    published_at: typeof result.published_date === 'string'
-      ? result.published_date
-      : new Date().toISOString(),
-    category,
+    item: {
+      title: result.title.trim(),
+      source_url: result.url,
+      summary: typeof result.content === 'string' ? result.content : '',
+      source_name: parsedUrl.hostname.replace('www.', ''),
+      image_url: typeof firstImage === 'string' ? firstImage : null,
+      published_at: typeof result.published_date === 'string'
+        ? result.published_date
+        : new Date().toISOString(),
+      category,
+    },
+    score: result.score,
   }
 }
 
@@ -110,9 +125,26 @@ const fetchQueryResults = async (
     throw new Error(`Tavily response did not include a results array: ${query}`)
   }
 
-  return data.results
+  const candidates = data.results
     .map((item) => mapTavilyResult(item as TavilySearchResult, category))
-    .filter((item): item is NewsItem => item !== null)
+    .filter((item): item is MappedCandidate => item !== null)
+
+  const highQuality = candidates.filter(({ score }) => score > PRIMARY_SCORE_THRESHOLD)
+  if (highQuality.length > 0) {
+    return highQuality.map(({ item }) => item)
+  }
+
+  // Tavily news scores can be much lower for niche queries; use a softer fallback.
+  const fallback = candidates.filter(({ score }) => score > FALLBACK_SCORE_THRESHOLD)
+  if (fallback.length > 0) {
+    return fallback.map(({ item }) => item)
+  }
+
+  // Last resort: keep the strongest valid hits rather than returning an empty set.
+  return candidates
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
+    .map(({ item }) => item)
 }
 
 export async function fetchTavilyNews(apiKey: string): Promise<NewsItem[]> {

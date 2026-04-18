@@ -139,12 +139,33 @@ async function handleManualRefresh() {
       headers.Authorization = `Bearer ${accessToken}`
     }
 
-    await $fetch('/api/news/refresh', {
+    const refreshResult = await $fetch<{
+      inserted?: number
+      skipped?: number
+      errors?: Array<string | { message?: string }>
+    }>('/api/news/refresh', {
       method: 'POST',
       headers: Object.keys(headers).length ? headers : undefined,
     })
-    manualRefreshStatus.value = 'success'
-    manualRefreshMessage.value = 'Kész'
+
+    const inserted = Number(refreshResult?.inserted ?? 0)
+    const skipped = Number(refreshResult?.skipped ?? 0)
+    const errors = Array.isArray(refreshResult?.errors) ? refreshResult.errors : []
+
+    if (errors.length > 0) {
+      const firstError = errors[0]
+      const firstErrorMessage = typeof firstError === 'string'
+        ? firstError
+        : firstError?.message || 'Ismeretlen hiba'
+      manualRefreshStatus.value = 'error'
+      manualRefreshMessage.value = `Frissítés hiba: ${firstErrorMessage}`
+    } else if (inserted > 0) {
+      manualRefreshStatus.value = 'success'
+      manualRefreshMessage.value = `Kész: ${inserted} új, ${skipped} duplikált.`
+    } else {
+      manualRefreshStatus.value = 'success'
+      manualRefreshMessage.value = 'Nincs új hír.'
+    }
   } catch (error: any) {
     manualRefreshStatus.value = 'error'
     manualRefreshMessage.value =
