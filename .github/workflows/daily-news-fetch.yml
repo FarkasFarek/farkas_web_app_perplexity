@@ -1,0 +1,38 @@
+name: Daily news fetch
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Supabase news-fetcher
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEWS_FETCH_SECRET: ${{ secrets.NEWS_FETCH_SECRET }}
+        run: |
+          response=$(curl -sS -X POST "${SUPABASE_URL}/functions/v1/news-fetcher" \
+            -H "Authorization: Bearer ${NEWS_FETCH_SECRET}" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            -w "\n%{http_code}")
+
+          body=$(echo "$response" | sed '$d')
+          status=$(echo "$response" | tail -n1)
+
+          echo "Response body: $body"
+          echo "HTTP status: $status"
+
+          if [ "$status" -ne 200 ]; then
+            echo "news-fetcher failed with status $status"
+            exit 1
+          fi
+
+          inserted=$(node -e "const d=JSON.parse(process.argv[1]); console.log(d.inserted ?? 0)" "$body")
+          skipped=$(node -e "const d=JSON.parse(process.argv[1]); console.log(d.skipped ?? 0)" "$body")
+
+          echo "inserted=$inserted"
+          echo "skipped=$skipped"

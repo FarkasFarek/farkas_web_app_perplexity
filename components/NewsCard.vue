@@ -21,20 +21,18 @@
   </div>
 
   <!-- ── Content ── -->
-  <article
+  <a
     v-else
-    class="nc"
+    :href="news.source_url"
+    target="_blank"
+    rel="noopener noreferrer"
+    :aria-label="`Cikk megnyitása: ${news.title}`"
+    class="block"
     @click="$emit('click', news)"
   >
+    <article class="nc">
     <!-- Image -->
-    <a
-      :href="news.source_url"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="nc__img-wrap"
-      :aria-label="news.title"
-      tabindex="-1"
-    >
+    <div class="nc__img-wrap">
       <img
         v-if="news.image_url"
         :src="news.image_url"
@@ -66,7 +64,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 9h6M9 13h6M9 17h4" />
         </svg>
       </div>
-    </a>
+    </div>
 
     <!-- Body -->
     <div class="nc__body">
@@ -77,23 +75,19 @@
       </div>
 
       <!-- Title -->
-      <a
-        :href="news.source_url"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="nc__title"
-      >{{ news.title }}</a>
+      <h3 class="nc__title">{{ news.title }}</h3>
 
       <!-- Summary -->
       <p v-if="news.summary" class="nc__summary">{{ news.summary }}</p>
 
-      <!-- Footer: source | date -->
-      <div class="nc__footer">
-        <span class="nc__source">{{ news.source_name }}</span>
-        <time :datetime="news.published_at" class="nc__date">{{ timeAgo }}</time>
+      <!-- Bottom row: source | read more -->
+      <div class="read-more-row">
+        <span class="source-name">{{ news.source_name }}</span>
+        <span class="read-more-link">Teljes cikk olvasása ↗</span>
       </div>
     </div>
-  </article>
+    </article>
+  </a>
 </template>
 
 <script setup lang="ts">
@@ -154,6 +148,11 @@ function handleImgError(e: Event) {
     transform var(--transition-interactive),
     box-shadow var(--transition-interactive),
     border-color var(--transition-interactive);
+}
+.block {
+  display: block;
+  color: inherit;
+  text-decoration: none;
 }
 .nc:not(.nc--skeleton):hover {
   transform: translateY(-2px);
@@ -298,6 +297,31 @@ function handleImgError(e: Event) {
   white-space: nowrap;
 }
 .nc__date { white-space: nowrap; flex-shrink: 0; }
+
+.read-more-row {
+  margin-top: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+.read-more-link {
+  font-size: var(--text-xs);
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--transition-interactive);
+  white-space: nowrap;
+}
+.read-more-link:hover { color: var(--color-primary-hover); }
+.source-name {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ─────────────────────────────────────────
    Skeleton
