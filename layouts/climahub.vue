@@ -1,30 +1,17 @@
 <template>
   <div style="background: var(--color-bg); color: var(--color-text); min-height: 100dvh;">
 
-    <!-- ===================== NAVBAR ===================== -->
+    <!-- NAVBAR -->
     <header class="ch-nav">
       <div class="ch-nav__inner">
 
         <!-- Logo -->
         <NuxtLink to="/" class="ch-nav__logo" aria-label="ClimaHub főoldal">
-          <!-- Hőhullám glyph -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 16 Q5 9 8 16 Q11 23 14 16 Q17 9 20 16"
-              stroke="var(--color-primary)"
-              stroke-width="2.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
+            <path d="M2 16 Q5 9 8 16 Q11 23 14 16 Q17 9 20 16"
+              stroke="var(--color-primary)" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-          <!-- Wordmark -->
           <span class="ch-nav__wordmark">
             <span class="ch-nav__wordmark-clima">Clima</span><span class="ch-nav__wordmark-hub">Hub</span>
           </span>
@@ -44,53 +31,44 @@
           </button>
         </nav>
 
-        <!-- Right side: search + toggle -->
+        <!-- Jobb oldal: kereső + dark mode + sign-out -->
         <div class="ch-nav__right">
           <SearchBar />
 
-          <button
-            type="button"
-            class="ch-toggle"
-            aria-label="Sötét mód kapcsolása"
-            @click="toggleColorMode"
-          >
-            <!-- Nap — dark módban mutatjuk (kiértékelésre váró ikont mutat light-ra) -->
-            <svg
-              v-if="isDark"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
+          <!-- Dark mode toggle -->
+          <button type="button" class="ch-toggle" aria-label="Sötét mód kapcsolása" @click="toggleColorMode">
+            <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="5" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
             </svg>
-            <!-- Hold — light módban mutatjuk -->
-            <svg
-              v-else
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
+            <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
+
+          <!-- Sign-out (csak bejelentkezve) -->
+          <button
+            v-if="user"
+            type="button"
+            class="ch-toggle ch-signout"
+            aria-label="Kijelentkezés"
+            :disabled="signingOut"
+            @click="handleSignOut"
+          >
+            <svg v-if="!signingOut" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            <svg v-else class="ch-spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
             </svg>
           </button>
         </div>
 
       </div>
     </header>
-    <!-- ==================== /NAVBAR ==================== -->
+    <!-- /NAVBAR -->
 
     <main><slot /></main>
 
@@ -101,13 +79,23 @@
 import type { FilterCategory } from '~/types/climahub'
 import { useFilterStore } from '~/stores/filter'
 
-const filterStore = useFilterStore()
-const colorMode = useColorMode()
+const filterStore  = useFilterStore()
+const colorMode    = useColorMode()
+const supabase     = useSupabaseClient()
+const user         = useSupabaseUser()
+const signingOut   = ref(false)
 
 const isDark = computed(() => colorMode.value === 'dark')
 
 function toggleColorMode() {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+
+async function handleSignOut() {
+  signingOut.value = true
+  await supabase.auth.signOut()
+  signingOut.value = false
+  await navigateTo('/login')
 }
 
 const categories: { value: FilterCategory; label: string }[] = [
@@ -119,9 +107,6 @@ const categories: { value: FilterCategory; label: string }[] = [
 </script>
 
 <style scoped>
-/* ============================================================
- * Navbar shell
- * ============================================================ */
 .ch-nav {
   position: sticky;
   top: 0;
@@ -136,21 +121,15 @@ const categories: { value: FilterCategory; label: string }[] = [
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  max-width: 80rem;       /* 1280px — matches Tailwind max-w-7xl */
+  max-width: 80rem;
   margin-inline: auto;
-  /* Desktop padding */
   padding: var(--space-3) var(--space-6);
 }
-
 @media (max-width: 640px) {
-  .ch-nav__inner {
-    padding: var(--space-3) var(--space-4);
-  }
+  .ch-nav__inner { padding: var(--space-3) var(--space-4); }
 }
 
-/* ============================================================
- * Logo
- * ============================================================ */
+/* Logo */
 .ch-nav__logo {
   display: flex;
   flex-shrink: 0;
@@ -161,38 +140,27 @@ const categories: { value: FilterCategory; label: string }[] = [
   transition: opacity var(--transition-interactive);
 }
 .ch-nav__logo:hover { opacity: 0.75; }
-
 .ch-nav__wordmark {
   font-family: 'Instrument Serif', Georgia, serif;
   font-size: 20px;
   line-height: 1;
   letter-spacing: -0.01em;
 }
-.ch-nav__wordmark-clima {
-  color: var(--color-text);
-  font-weight: 400;
-}
-.ch-nav__wordmark-hub {
-  color: var(--color-primary);
-  font-weight: 400;
-  font-style: italic;
-}
+.ch-nav__wordmark-clima { color: var(--color-text); font-weight: 400; }
+.ch-nav__wordmark-hub   { color: var(--color-primary); font-weight: 400; font-style: italic; }
 
-/* ============================================================
- * Filter pill row
- * ============================================================ */
+/* Pill-ek */
 .ch-nav__pills {
   display: flex;
   flex: 1;
   align-items: center;
   gap: var(--space-2);
   overflow-x: auto;
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .ch-nav__pills::-webkit-scrollbar { display: none; }
 
-/* ---- Individual pill ---- */
 .ch-pill {
   flex-shrink: 0;
   display: inline-flex;
@@ -212,21 +180,14 @@ const categories: { value: FilterCategory; label: string }[] = [
     background-color var(--transition-interactive),
     border-color var(--transition-interactive);
 }
-
-.ch-pill:hover {
-  color: var(--color-text);
-  border-color: var(--color-text-muted);
-}
-
+.ch-pill:hover { color: var(--color-text); border-color: var(--color-text-muted); }
 .ch-pill--active {
   background: var(--color-primary-highlight);
   color: var(--color-primary);
   border-color: var(--color-primary);
 }
 
-/* ============================================================
- * Right controls
- * ============================================================ */
+/* Jobb oldali gombok */
 .ch-nav__right {
   display: flex;
   flex-shrink: 0;
@@ -234,7 +195,6 @@ const categories: { value: FilterCategory; label: string }[] = [
   gap: var(--space-2);
 }
 
-/* ---- Toggle button ---- */
 .ch-toggle {
   display: flex;
   align-items: center;
@@ -246,12 +206,10 @@ const categories: { value: FilterCategory; label: string }[] = [
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
-  opacity: 1;
   transition:
     color var(--transition-interactive),
     background-color var(--transition-interactive),
-    border-color var(--transition-interactive),
-    opacity 180ms ease;
+    border-color var(--transition-interactive);
 }
 .ch-toggle:hover {
   color: var(--color-text);
@@ -259,4 +217,16 @@ const categories: { value: FilterCategory; label: string }[] = [
   border-color: var(--color-border);
 }
 .ch-toggle:active { opacity: 0.55; }
+.ch-toggle:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Sign-out: hover-on piros árnyalat */
+.ch-signout:hover {
+  color: var(--color-error);
+  background: var(--color-error-highlight);
+  border-color: var(--color-error);
+}
+
+/* Spinner animáció */
+@keyframes ch-spin { to { transform: rotate(360deg); } }
+.ch-spinner { animation: ch-spin 0.75s linear infinite; }
 </style>
