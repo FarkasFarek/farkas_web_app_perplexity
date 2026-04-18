@@ -33,7 +33,6 @@ async function handleLogin() {
   <div class="lp-page">
     <div class="lp-card">
 
-      <!-- Logó -->
       <div class="lp-logo" aria-hidden="true">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 148 32" width="148" height="32" fill="none">
           <svg x="0" y="4" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -54,12 +53,9 @@ async function handleLogin() {
         </svg>
       </div>
 
-      <!-- Cím -->
       <h1 class="lp-title">Bejelentkezés</h1>
 
-      <!-- Form -->
       <form class="lp-form" @submit.prevent="handleLogin" novalidate>
-
         <div class="lp-field">
           <label for="email" class="lp-label">E-mail cím</label>
           <input
@@ -103,13 +99,16 @@ async function handleLogin() {
           </template>
         </button>
 
+        <p class="lp-footer-text">
+          Nincs még fiókod?
+          <NuxtLink to="/register" class="lp-link">Regisztrálj</NuxtLink>
+        </p>
       </form>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* ── Oldal háttér ────────────────────────────────────────── */
 .lp-page {
   min-height: 100dvh;
   display: flex;
@@ -121,7 +120,6 @@ async function handleLogin() {
     var(--color-bg);
 }
 
-/* ── Kártya ───────────────────────────────────────────────── */
 .lp-card {
   width: min(400px, 90vw);
   padding: var(--space-8);
@@ -134,13 +132,11 @@ async function handleLogin() {
   gap: var(--space-5);
 }
 
-/* ── Logó ────────────────────────────────────────────────── */
 .lp-logo {
   display: flex;
   justify-content: center;
 }
 
-/* ── Cím ─────────────────────────────────────────────────── */
 .lp-title {
   margin: 0;
   font-family: 'Instrument Serif', Georgia, serif;
@@ -151,7 +147,6 @@ async function handleLogin() {
   line-height: 1.15;
 }
 
-/* ── Form ────────────────────────────────────────────────── */
 .lp-form {
   display: flex;
   flex-direction: column;
@@ -195,7 +190,6 @@ async function handleLogin() {
   cursor: not-allowed;
 }
 
-/* ── Hibaüzenett ─────────────────────────────────────────── */
 .lp-error {
   margin-top: var(--space-2);
   font-size: var(--text-sm);
@@ -203,7 +197,6 @@ async function handleLogin() {
   max-width: none;
 }
 
-/* ── Submit ──────────────────────────────────────────────── */
 .lp-submit {
   display: flex;
   align-items: center;
@@ -228,7 +221,22 @@ async function handleLogin() {
   cursor: not-allowed;
 }
 
-/* ── Spinner animáció ───────────────────────────────────── */
+.lp-footer-text {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  max-width: none;
+}
+
+.lp-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.lp-link:hover {
+  text-decoration: underline;
+}
+
 @keyframes lp-spin {
   to { transform: rotate(360deg); }
 }
