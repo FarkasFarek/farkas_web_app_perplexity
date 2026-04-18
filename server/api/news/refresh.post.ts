@@ -1,4 +1,5 @@
 import type { FetchError } from 'ofetch'
+import { createClient } from '@supabase/supabase-js'
 import { serverSupabaseUser } from '#supabase/server'
 
 type RefreshResponse = {
@@ -14,7 +15,48 @@ type ErrorResponse = {
 }
 
 export default defineEventHandler(async (event) => {
-  const user = await serverSupabaseUser(event)
+  const config = useRuntimeConfig()
+  const supabaseUrl = pickFirstNonEmpty(
+    config.public.supabaseUrl,
+    process.env.SUPABASE_URL,
+    process.env.NUXT_PUBLIC_SUPABASE_URL,
+  )
+  const supabaseServiceRoleKey = pickFirstNonEmpty(
+    config.supabaseServiceRoleKey,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  )
+  const newsFetchSecret = pickFirstNonEmpty(
+    config.newsFetchSecret,
+    process.env.NEWS_FETCH_SECRET,
+    process.env.NUXT_NEWS_FETCH_SECRET,
+  )
+
+  let user = await serverSupabaseUser(event)
+
+  if (!user) {
+    const bearerToken = extractBearerToken(getHeader(event, 'authorization'))
+
+    if (bearerToken) {
+      if (!supabaseUrl || !supabaseServiceRoleKey) {
+        throw createError({
+          statusCode: 500,
+          statusMessage: 'Server misconfiguration: missing supabaseUrl or supabaseServiceRoleKey for bearer auth fallback',
+        })
+      }
+
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey)
+      const { data, error } = await supabaseAdmin.auth.getUser(bearerToken)
+
+      if (error) {
+        throw createError({
+          statusCode: 401,
+          statusMessage: `Unauthorized: invalid bearer token (${error.message})`,
+        })
+      }
+
+      user = data.user
+    }
+  }
 
   if (!user) {
     throw createError({
@@ -37,18 +79,6 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Forbidden: admin role required',
     })
   }
-
-  const config = useRuntimeConfig()
-  const supabaseUrl = pickFirstNonEmpty(
-    config.public.supabaseUrl,
-    process.env.SUPABASE_URL,
-    process.env.NUXT_PUBLIC_SUPABASE_URL,
-  )
-  const newsFetchSecret = pickFirstNonEmpty(
-    config.newsFetchSecret,
-    process.env.NEWS_FETCH_SECRET,
-    process.env.NUXT_NEWS_FETCH_SECRET,
-  )
 
   const missing: string[] = []
   if (!supabaseUrl) {
@@ -122,4 +152,18 @@ function pickFirstNonEmpty(...values: Array<string | undefined>): string | undef
   }
 
   return undefined
+}
+
+function extractBearerToken(authorizationHeader: string | undefined): string | null {
+  if (typeof authorizationHeader !== 'string') {
+    return null
+  }
+
+  const [scheme, ...tokenParts] = authorizationHeader.trim().split(/\s+/)
+  if (scheme?.toLowerCase() !== 'bearer') {
+    return null
+  }
+
+  const token = tokenParts.join(' ').trim()
+  return token.length > 0 ? token : null
 }

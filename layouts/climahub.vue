@@ -35,24 +35,26 @@
         <div class="ch-nav__right">
           <SearchBar />
 
-          <div v-if="authStore.isAdmin" class="ch-admin-refresh">
-            <button
-              type="button"
-              class="ch-admin-refresh__button"
-              :disabled="manualRefreshLoading"
-              @click="handleManualRefresh"
-            >
-              {{ manualRefreshLoading ? 'Frissítés...' : 'Hírek frissítése' }}
-            </button>
-            <span
-              v-if="manualRefreshMessage"
-              class="ch-admin-refresh__status"
-              :class="`ch-admin-refresh__status--${manualRefreshStatus}`"
-              aria-live="polite"
-            >
-              {{ manualRefreshMessage }}
-            </span>
-          </div>
+          <ClientOnly>
+            <div v-if="authStore.isAdmin" class="ch-admin-refresh">
+              <button
+                type="button"
+                class="ch-admin-refresh__button"
+                :disabled="manualRefreshLoading"
+                @click="handleManualRefresh"
+              >
+                {{ manualRefreshLoading ? 'Frissítés...' : 'Hírek frissítése' }}
+              </button>
+              <span
+                v-if="manualRefreshMessage"
+                class="ch-admin-refresh__status"
+                :class="`ch-admin-refresh__status--${manualRefreshStatus}`"
+                aria-live="polite"
+              >
+                {{ manualRefreshMessage }}
+              </span>
+            </div>
+          </ClientOnly>
 
           <!-- Dark mode toggle -->
           <button type="button" class="ch-toggle" aria-label="Sötét mód kapcsolása" @click="toggleColorMode">
@@ -129,7 +131,18 @@ async function handleManualRefresh() {
   manualRefreshMessage.value = null
 
   try {
-    await $fetch('/api/news/refresh', { method: 'POST' })
+    const { data: { session } } = await supabase.auth.getSession()
+    const accessToken = session?.access_token
+    const headers: Record<string, string> = {}
+
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`
+    }
+
+    await $fetch('/api/news/refresh', {
+      method: 'POST',
+      headers: Object.keys(headers).length ? headers : undefined,
+    })
     manualRefreshStatus.value = 'success'
     manualRefreshMessage.value = 'Kész'
   } catch (error: any) {
