@@ -2,7 +2,10 @@
 import { useNews } from '~/composables/useNews'
 import { useInfiniteScroll } from '~/composables/useInfiniteScroll'
 
-definePageMeta({ layout: 'climahub' })
+definePageMeta({
+  layout: 'climahub',
+  middleware: 'auth',
+})
 
 const {
   news,
@@ -112,9 +115,7 @@ const SKELETON_COUNT = 6
   gap: var(--space-4);
 }
 
-.home-sentinel {
-  height: 4px;
-}
+.home-sentinel { height: 4px; }
 
 .home-end-message {
   text-align: center;
@@ -124,14 +125,8 @@ const SKELETON_COUNT = 6
 }
 
 @media (max-width: 640px) {
-  .home-hero {
-    padding: var(--space-8) var(--space-4);
-  }
-  .home-shell {
-    padding: 0 var(--space-4) var(--space-12);
-  }
-  .home-hero__title {
-    max-width: none;
-  }
+  .home-hero { padding: var(--space-8) var(--space-4); }
+  .home-shell { padding: 0 var(--space-4) var(--space-12); }
+  .home-hero__title { max-width: none; }
 }
 </style>
