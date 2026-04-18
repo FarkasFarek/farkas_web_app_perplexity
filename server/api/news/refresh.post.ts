@@ -39,13 +39,29 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
-  const supabaseUrl = config.public.supabaseUrl
-  const newsFetchSecret = config.newsFetchSecret
+  const supabaseUrl = pickFirstNonEmpty(
+    config.public.supabaseUrl,
+    process.env.SUPABASE_URL,
+    process.env.NUXT_PUBLIC_SUPABASE_URL,
+  )
+  const newsFetchSecret = pickFirstNonEmpty(
+    config.newsFetchSecret,
+    process.env.NEWS_FETCH_SECRET,
+    process.env.NUXT_NEWS_FETCH_SECRET,
+  )
 
-  if (!supabaseUrl || !newsFetchSecret) {
+  const missing: string[] = []
+  if (!supabaseUrl) {
+    missing.push('supabaseUrl (public.supabaseUrl | SUPABASE_URL | NUXT_PUBLIC_SUPABASE_URL)')
+  }
+  if (!newsFetchSecret) {
+    missing.push('newsFetchSecret (newsFetchSecret | NEWS_FETCH_SECRET | NUXT_NEWS_FETCH_SECRET)')
+  }
+
+  if (missing.length > 0) {
     throw createError({
       statusCode: 500,
-      statusMessage: 'Server misconfiguration: missing SUPABASE_URL or NEWS_FETCH_SECRET',
+      statusMessage: `Server misconfiguration: missing ${missing.join(', ')}`,
     })
   }
 
@@ -63,15 +79,17 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!response.ok) {
-      const message = typeof response._data?.message === 'string'
+      const payloadMessage = typeof response._data?.message === 'string'
         ? response._data.message
         : typeof response._data?.error === 'string'
           ? response._data.error
-          : `Edge function request failed with status ${response.status}`
+          : undefined
 
       throw createError({
         statusCode: response.status || 502,
-        statusMessage: `News refresh failed: ${message}`,
+        statusMessage: payloadMessage
+          ? `News refresh failed (HTTP ${response.status}): ${payloadMessage}`
+          : `News refresh failed (HTTP ${response.status})`,
       })
     }
 
@@ -94,4 +112,14 @@ function isFetchError(error: unknown): error is FetchError {
     && error !== null
     && 'name' in error
     && error.name === 'FetchError'
+}
+
+function pickFirstNonEmpty(...values: Array<string | undefined>): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value
+    }
+  }
+
+  return undefined
 }

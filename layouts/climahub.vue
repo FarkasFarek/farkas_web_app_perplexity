@@ -132,9 +132,13 @@ async function handleManualRefresh() {
     await $fetch('/api/news/refresh', { method: 'POST' })
     manualRefreshStatus.value = 'success'
     manualRefreshMessage.value = 'Kész'
-  } catch {
+  } catch (error: any) {
     manualRefreshStatus.value = 'error'
-    manualRefreshMessage.value = 'Hiba'
+    manualRefreshMessage.value =
+      error?.data?.statusMessage ||
+      error?.data?.message ||
+      error?.message ||
+      'A frissítés nem sikerült.'
   } finally {
     manualRefreshLoading.value = false
   }
