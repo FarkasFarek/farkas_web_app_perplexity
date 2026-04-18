@@ -1,159 +1,392 @@
 <template>
-  <div class="relative" role="search">
-    <!-- Icon button -->
+  <div class="search" ref="root">
     <button
+      class="search__toggle"
       type="button"
-      class="rounded-md p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-offset)] transition-colors"
-      :aria-label="open ? 'Kereső bezárása' : 'Keresés'"
-      :aria-expanded="open"
+      :aria-expanded="open ? 'true' : 'false'"
+      aria-label="Keresés"
       @click="toggleOpen"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8" />
-        <path stroke-linecap="round" d="M21 21l-4.35-4.35" />
+      <svg class="search__icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-3.5-3.5" stroke-linecap="round" />
       </svg>
     </button>
 
-    <!-- Expanding input -->
-    <div
-      class="absolute right-0 top-full mt-1 overflow-hidden transition-all duration-200"
-      :style="open ? 'max-width: 320px; opacity: 1' : 'max-width: 0; opacity: 0'"
-    >
-      <div
+    <div class="search__field-wrap" :class="{ 'is-open': open }">
+      <input
+        ref="inputRef"
+        v-model="query"
+        class="search__input"
+        type="text"
+        autocomplete="off"
+        placeholder="Keresés..."
         role="combobox"
-        :aria-expanded="open && results !== null"
-        aria-haspopup="listbox"
-        :aria-activedescendant="activeId"
-        class="relative"
-      >
-        <input
-          ref="inputRef"
-          v-model="query"
-          type="search"
-          placeholder="Keresés..."
-          class="w-72 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-faint)] focus:outline-none focus:ring-2 focus:ring-teal-500"
-          :aria-label="'Keresés'"
-          @keydown="handleKeydown"
-        />
+        aria-autocomplete="list"
+        :aria-expanded="showDropdown ? 'true' : 'false'"
+        :aria-controls="dropdownId"
+        :aria-activedescendant="activeDescendant"
+        @keydown="onKeydown"
+        @focus="onFocus"
+      />
+    </div>
 
-        <!-- Dropdown -->
-        <div
-          v-if="results !== null && open"
-          id="search-dropdown"
-          role="listbox"
-          class="absolute left-0 top-full mt-1 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg overflow-hidden z-50"
+    <div
+      v-if="showDropdown"
+      :id="dropdownId"
+      class="search__dropdown"
+      role="listbox"
+    >
+      <template v-if="newsResults.length">
+        <div class="search__section-title">Hírek</div>
+        <button
+          v-for="(item, index) in newsResults"
+          :id="optionId('news', index)"
+          :key="`news-${item.id}`"
+          class="search__item"
+          type="button"
+          role="option"
+          :aria-selected="activeType === 'news' && activeIndex === index ? 'true' : 'false'"
+          @mouseenter="setActive('news', index)"
+          @click="selectNews(item)"
         >
-          <!-- Products section -->
-          <div v-if="results.products.length">
-            <p class="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-faint)]">Termékek</p>
-            <button
-              v-for="(item, i) in results.products.slice(0, 3)"
-              :id="`search-item-${i}`"
-              :key="item.id"
-              role="option"
-              :aria-selected="activeIndex === i"
-              type="button"
-              class="flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors"
-              :class="activeIndex === i ? 'bg-[var(--color-surface-offset)]' : 'hover:bg-[var(--color-surface-offset)]'"
-              @click="openAffiliate(item.affiliate_url)"
-            >
-              <span class="flex-1 truncate">{{ item.name }}</span>
-              <span class="shrink-0 text-xs text-[var(--color-text-faint)]">{{ item.brand }}</span>
-            </button>
-          </div>
+          <img v-if="item.image_url" :src="item.image_url" :alt="''" class="search__thumb" loading="lazy" decoding="async" />
+          <div v-else class="search__thumb search__thumb--empty" aria-hidden="true"></div>
+          <span class="search__label">{{ item.title }}</span>
+        </button>
+      </template>
 
-          <!-- Divider -->
-          <div v-if="results.products.length && results.news.length" class="my-1 border-t border-[var(--color-divider)]" />
+      <div v-if="newsResults.length && productResults.length" class="search__divider"></div>
 
-          <!-- News section -->
-          <div v-if="results.news.length">
-            <p class="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--color-text-faint)]">Hírek</p>
-            <a
-              v-for="(item, i) in results.news.slice(0, 3)"
-              :id="`search-item-${results.products.slice(0,3).length + i}`"
-              :key="item.id"
-              :href="item.source_url"
-              target="_blank"
-              rel="noopener noreferrer"
-              role="option"
-              :aria-selected="activeIndex === results.products.slice(0,3).length + i"
-              class="flex w-full items-center gap-3 px-3 py-2 text-sm transition-colors"
-              :class="activeIndex === results.products.slice(0,3).length + i ? 'bg-[var(--color-surface-offset)]' : 'hover:bg-[var(--color-surface-offset)]'"
-            >
-              <span class="flex-1 truncate">{{ item.title }}</span>
-              <span class="shrink-0 text-xs text-[var(--color-text-faint)]">{{ item.source_name }}</span>
-            </a>
-          </div>
-
-          <!-- Empty -->
-          <p v-if="!results.products.length && !results.news.length" class="px-4 py-3 text-sm text-[var(--color-text-muted)]">
-            Nincs találat
-          </p>
-        </div>
-      </div>
+      <template v-if="productResults.length">
+        <div class="search__section-title">Termékek</div>
+        <button
+          v-for="(item, index) in productResults"
+          :id="optionId('product', index)"
+          :key="`product-${item.id}`"
+          class="search__item"
+          type="button"
+          role="option"
+          :aria-selected="activeType === 'product' && activeIndex === index ? 'true' : 'false'"
+          @mouseenter="setActive('product', index)"
+          @click="selectProduct(item)"
+        >
+          <img v-if="item.image_url" :src="item.image_url" :alt="''" class="search__thumb" loading="lazy" decoding="async" />
+          <div v-else class="search__thumb search__thumb--empty" aria-hidden="true"></div>
+          <span class="search__label">{{ item.name }}</span>
+        </button>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Product, NewsItem } from '~/types/climahub'
+import type { NewsItem, Product } from '~/types/climahub'
 
-interface SearchResults { products: Product[]; news: NewsItem[] }
+const props = defineProps<{
+  news: NewsItem[]
+  products: Product[]
+}>()
 
+const emit = defineEmits<{
+  (e: 'select-news', item: NewsItem): void
+  (e: 'select-product', item: Product): void
+}>()
+
+const root = ref<HTMLElement | null>(null)
+const inputRef = ref<HTMLInputElement | null>(null)
 const open = ref(false)
 const query = ref('')
-const results = ref<SearchResults | null>(null)
-const activeIndex = ref(-1)
-const inputRef = ref<HTMLInputElement | null>(null)
+const activeType = ref<'news' | 'product'>('news')
+const activeIndex = ref(0)
+const dropdownId = 'search-dropdown'
 
-const activeId = computed(() => {
-  if (activeIndex.value < 0) return undefined
-  return `search-item-${activeIndex.value}`
+const normalized = (value: string) =>
+  value
+    .toLocaleLowerCase('hu-HU')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+const newsResults = computed(() => {
+  const q = normalized(query.value.trim())
+  if (!q) return []
+  return props.news.filter((item) =>
+    normalized(`${item.title} ${item.summary ?? ''} ${item.source_name}`).includes(q)
+  ).slice(0, 5)
 })
 
-let debounceTimer: ReturnType<typeof setTimeout>
-
-watch(query, (val) => {
-  clearTimeout(debounceTimer)
-  activeIndex.value = -1
-  if (val.length < 2) { results.value = null; return }
-  debounceTimer = setTimeout(async () => {
-    try {
-      results.value = await $fetch<SearchResults>(`/api/search?q=${encodeURIComponent(val)}`)
-    } catch {
-      results.value = null
-    }
-  }, 300)
+const productResults = computed(() => {
+  const q = normalized(query.value.trim())
+  if (!q) return []
+  return props.products.filter((item) =>
+    normalized(`${item.name} ${item.brand} ${item.description ?? ''}`).includes(q)
+  ).slice(0, 5)
 })
+
+const showDropdown = computed(() =>
+  open.value && !!query.value.trim() && (newsResults.value.length > 0 || productResults.value.length > 0)
+)
+
+const flatResults = computed(() => [
+  ...newsResults.value.map((item) => ({ type: 'news' as const, item })),
+  ...productResults.value.map((item) => ({ type: 'product' as const, item })),
+])
+
+const activeDescendant = computed(() => {
+  if (!showDropdown.value) return undefined
+  return optionId(activeType.value, activeIndex.value)
+})
+
+function optionId(type: 'news' | 'product', index: number) {
+  return `search-option-${type}-${index}`
+}
 
 function toggleOpen() {
   open.value = !open.value
   if (open.value) nextTick(() => inputRef.value?.focus())
-  else { query.value = ''; results.value = null }
 }
 
-const totalItems = computed(() => {
-  if (!results.value) return 0
-  return Math.min(3, results.value.products.length) + Math.min(3, results.value.news.length)
-})
+function onFocus() {
+  open.value = true
+}
 
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') { open.value = false; query.value = ''; results.value = null }
-  if (e.key === 'ArrowDown') { e.preventDefault(); activeIndex.value = Math.min(activeIndex.value + 1, totalItems.value - 1) }
-  if (e.key === 'ArrowUp') { e.preventDefault(); activeIndex.value = Math.max(activeIndex.value - 1, -1) }
-  if (e.key === 'Enter' && activeIndex.value >= 0 && results.value) {
-    const products = results.value.products.slice(0, 3)
-    const news = results.value.news.slice(0, 3)
-    if (activeIndex.value < products.length) {
-      openAffiliate(products[activeIndex.value]?.affiliate_url ?? null)
-    } else {
-      const newsItem = news[activeIndex.value - products.length]
-      if (newsItem) window.open(newsItem.source_url, '_blank', 'noopener,noreferrer')
+function setActive(type: 'news' | 'product', index: number) {
+  activeType.value = type
+  activeIndex.value = index
+}
+
+function syncActiveFromFlat(index: number) {
+  const item = flatResults.value[index]
+  if (!item) return
+  activeType.value = item.type
+  const typeIndex = item.type === 'news'
+    ? newsResults.value.findIndex((n) => n.id === (item.item as NewsItem).id)
+    : productResults.value.findIndex((p) => p.id === (item.item as Product).id)
+  activeIndex.value = Math.max(0, typeIndex)
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (!showDropdown.value) {
+    if (e.key === 'ArrowDown' && flatResults.value.length) {
+      e.preventDefault()
+      open.value = true
+      syncActiveFromFlat(0)
     }
+    return
+  }
+
+  const items = flatResults.value
+  const currentFlatIndex = items.findIndex((entry) => {
+    if (activeType.value === 'news' && entry.type === 'news') {
+      return newsResults.value[activeIndex.value]?.id === (entry.item as NewsItem).id
+    }
+    if (activeType.value === 'product' && entry.type === 'product') {
+      return productResults.value[activeIndex.value]?.id === (entry.item as Product).id
+    }
+    return false
+  })
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    const nextIndex = currentFlatIndex < items.length - 1 ? currentFlatIndex + 1 : 0
+    syncActiveFromFlat(nextIndex)
+  }
+
+  if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    const nextIndex = currentFlatIndex > 0 ? currentFlatIndex - 1 : items.length - 1
+    syncActiveFromFlat(nextIndex)
+  }
+
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    const current = items[currentFlatIndex]
+    if (!current) return
+    if (current.type === 'news') selectNews(current.item as NewsItem)
+    else selectProduct(current.item as Product)
+  }
+
+  if (e.key === 'Escape') {
+    open.value = false
+    inputRef.value?.blur()
   }
 }
 
-function openAffiliate(url: string | null | undefined) {
-  if (url) window.open(url, '_blank', 'noopener,noreferrer')
+function selectNews(item: NewsItem) {
+  emit('select-news', item)
+  open.value = false
+  query.value = ''
+}
+
+function selectProduct(item: Product) {
+  emit('select-product', item)
+  open.value = false
+  query.value = ''
+}
+
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', onDocumentClick)
+})
+
+function onDocumentClick(e: MouseEvent) {
+  if (!root.value?.contains(e.target as Node)) {
+    open.value = false
+  }
 }
 </script>
+
+<style scoped>
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.search__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  background: transparent;
+  transition:
+    color var(--transition-interactive),
+    background var(--transition-interactive),
+    box-shadow var(--transition-interactive);
+}
+.search__toggle:hover {
+  color: var(--color-text);
+  background: var(--color-surface-offset);
+}
+.search__toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.search__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.search__field-wrap {
+  width: 0;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    width var(--transition-interactive),
+    max-width var(--transition-interactive),
+    opacity var(--transition-interactive);
+}
+.search__field-wrap.is-open {
+  width: 220px;
+  max-width: 220px;
+  opacity: 1;
+}
+
+.search__input {
+  width: 220px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+.search__input::placeholder {
+  color: var(--color-text-faint);
+}
+.search__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-highlight);
+  outline: none;
+}
+
+.search__dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  width: 360px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 30;
+}
+
+.search__section-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: var(--space-3) var(--space-4) var(--space-1);
+}
+
+.search__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+.search__item[aria-selected='true'] {
+  background: var(--color-surface-offset);
+}
+.search__item:hover {
+  background: var(--color-surface-offset);
+}
+
+.search__thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--color-surface-offset);
+  flex-shrink: 0;
+}
+.search__thumb--empty {
+  display: block;
+}
+
+.search__label {
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search__divider {
+  height: 1px;
+  background: var(--color-divider);
+  margin: var(--space-2) 0;
+}
+
+@media (max-width: 479px) {
+  .search__dropdown {
+    width: 100vw;
+    right: auto;
+    left: calc(var(--space-4) * -1);
+  }
+
+  .search__field-wrap.is-open,
+  .search__input {
+    width: min(220px, calc(100vw - 72px));
+    max-width: min(220px, calc(100vw - 72px));
+  }
+}
+</style>
