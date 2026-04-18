@@ -1,5 +1,4 @@
 // stores/filter.ts
-// Globális kategória-filter: minden ClimaHub szekciót egyszerre szűr
 import { defineStore } from 'pinia'
 import type { FilterCategory } from '~/types/climahub'
 
