@@ -20,6 +20,19 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state): boolean => !!state.user,
     currentUser: (state): User | null => state.user,
     isInitialized: (state): boolean => state.initialized,
+    role: (state): 'admin' | 'user' => {
+      const appRole = state.user?.app_metadata?.role
+      const userRole = state.user?.user_metadata?.role
+      const normalizedRole = String(appRole ?? userRole ?? 'user').toLowerCase()
+
+      return normalizedRole === 'admin' ? 'admin' : 'user'
+    },
+    isAdmin(): boolean {
+      return this.role === 'admin'
+    },
+    isReadOnly(): boolean {
+      return !this.isAdmin
+    },
   },
 
   // ─── Actions ────────────────────────────────────────────────────────────
