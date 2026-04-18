@@ -35,6 +35,25 @@
         <div class="ch-nav__right">
           <SearchBar />
 
+          <div v-if="authStore.isAdmin" class="ch-admin-refresh">
+            <button
+              type="button"
+              class="ch-admin-refresh__button"
+              :disabled="manualRefreshLoading"
+              @click="handleManualRefresh"
+            >
+              {{ manualRefreshLoading ? 'Frissítés...' : 'Hírek frissítése' }}
+            </button>
+            <span
+              v-if="manualRefreshMessage"
+              class="ch-admin-refresh__status"
+              :class="`ch-admin-refresh__status--${manualRefreshStatus}`"
+              aria-live="polite"
+            >
+              {{ manualRefreshMessage }}
+            </span>
+          </div>
+
           <!-- Dark mode toggle -->
           <button type="button" class="ch-toggle" aria-label="Sötét mód kapcsolása" @click="toggleColorMode">
             <svg v-if="isDark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -77,13 +96,18 @@
 
 <script setup lang="ts">
 import type { FilterCategory } from '~/types/climahub'
+import { useAuthStore } from '~/stores/auth'
 import { useFilterStore } from '~/stores/filter'
 
 const filterStore  = useFilterStore()
+const authStore    = useAuthStore()
 const colorMode    = useColorMode()
 const supabase     = useSupabaseClient()
 const user         = useSupabaseUser()
 const signingOut   = ref(false)
+const manualRefreshLoading = ref(false)
+const manualRefreshMessage = ref<string | null>(null)
+const manualRefreshStatus = ref<'success' | 'error'>('success')
 
 const isDark = computed(() => colorMode.value === 'dark')
 
@@ -96,6 +120,24 @@ async function handleSignOut() {
   await supabase.auth.signOut()
   signingOut.value = false
   await navigateTo('/login')
+}
+
+async function handleManualRefresh() {
+  if (manualRefreshLoading.value) return
+
+  manualRefreshLoading.value = true
+  manualRefreshMessage.value = null
+
+  try {
+    await $fetch('/api/news/refresh', { method: 'POST' })
+    manualRefreshStatus.value = 'success'
+    manualRefreshMessage.value = 'Kész'
+  } catch {
+    manualRefreshStatus.value = 'error'
+    manualRefreshMessage.value = 'Hiba'
+  } finally {
+    manualRefreshLoading.value = false
+  }
 }
 
 const categories: { value: FilterCategory; label: string }[] = [
@@ -193,6 +235,55 @@ const categories: { value: FilterCategory; label: string }[] = [
   flex-shrink: 0;
   align-items: center;
   gap: var(--space-2);
+}
+
+.ch-admin-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ch-admin-refresh__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary-highlight);
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-interactive),
+    border-color var(--transition-interactive),
+    color var(--transition-interactive);
+}
+
+.ch-admin-refresh__button:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--color-primary) 14%, transparent);
+}
+
+.ch-admin-refresh__button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ch-admin-refresh__status {
+  font-size: var(--text-xs);
+  line-height: 1;
+  color: var(--color-text-faint);
+}
+
+.ch-admin-refresh__status--success {
+  color: var(--color-success);
+}
+
+.ch-admin-refresh__status--error {
+  color: var(--color-error);
 }
 
 .ch-toggle {
