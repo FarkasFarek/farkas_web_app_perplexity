@@ -4,7 +4,6 @@ export default defineNuxtConfig({
 
   devtools: { enabled: false },
 
-  // Global CSS — sorrend fontos: tokens előbb, base utána
   css: [
     '~/assets/css/tokens.css',
     '~/assets/css/base.css',
@@ -17,15 +16,12 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
   ],
 
-  // Color mode: class strategy — .dark / .light class a <html>-en
-  // tokens.css .dark szelektor illeszkedik rá
   colorMode: {
     preference: 'system',
     fallback: 'light',
     classSuffix: '',
   },
 
-  // Edge runtime Vercelen
   nitro: {
     preset: 'vercel-edge',
   },
@@ -35,7 +31,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/login',
       callback: '/confirm',
-      exclude: ['/', '/api/products*', '/api/news*', '/api/search*'],
+      exclude: ['/login', '/register', '/api/news*', '/api/search*'],
     },
   },
 
