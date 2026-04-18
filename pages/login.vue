@@ -1,27 +1,28 @@
 <script setup lang="ts">
 definePageMeta({
   middleware: 'guest',
+  layout: false,
 })
 
 const supabase = useSupabaseClient()
-const email = ref('')
+const email    = ref('')
 const password = ref('')
-const loading = ref(false)
-const error = ref<string | null>(null)
+const loading  = ref(false)
+const error    = ref<string | null>(null)
 
 async function handleLogin() {
   loading.value = true
-  error.value = null
+  error.value   = null
 
   const { error: authError } = await supabase.auth.signInWithPassword({
-    email: email.value,
+    email:    email.value,
     password: password.value,
   })
 
   if (authError) {
     error.value = authError.message
   } else {
-    await navigateTo('/dashboard')
+    await navigateTo('/')
   }
 
   loading.value = false
@@ -48,7 +49,7 @@ async function handleLogin() {
       </div>
 
       <h1 class="login-title">Bejelentkezés</h1>
-      <p class="login-sub">Klíma és hőszivattyú szakmai portfólió</p>
+      <p class="login-sub">Klíma és hőszivattyú szakmai portál</p>
 
       <form class="login-form" @submit.prevent="handleLogin">
         <div class="field">
@@ -102,122 +103,108 @@ async function handleLogin() {
   min-height: 100dvh;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6);
   background: var(--color-bg);
+  padding: var(--space-4);
 }
 
 .login-card {
   width: 100%;
-  max-width: 384px;
-  padding: var(--space-10);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--color-border);
+  max-width: 420px;
   background: var(--color-surface);
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-8);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .login-logo {
   display: flex;
   justify-content: center;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-2);
 }
 
 .login-title {
+  font-family: 'Instrument Serif', Georgia, serif;
   font-size: var(--text-xl);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-weight: 400;
   color: var(--color-text);
   text-align: center;
-  margin-bottom: var(--space-1);
+  margin: 0;
 }
 
 .login-sub {
   font-size: var(--text-sm);
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
   text-align: center;
-  margin-bottom: var(--space-8);
+  margin: 0;
   max-width: none;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
+  margin-top: var(--space-2);
 }
 
-/* Field */
 .field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
+
 .field__label {
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--color-text-muted);
 }
+
 .field__input {
   width: 100%;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
   background: var(--color-surface-2);
-  padding: 0.55rem var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
   color: var(--color-text);
-  transition:
-    border-color var(--transition-ui),
-    box-shadow var(--transition-ui);
-  outline: none;
+  transition: border-color var(--transition-interactive), box-shadow var(--transition-interactive);
 }
 .field__input::placeholder { color: var(--color-text-faint); }
 .field__input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-ring);
+  box-shadow: 0 0 0 3px var(--color-primary-highlight);
+  outline: none;
 }
 
-/* Error */
 .login-error {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
   color: var(--color-error);
   background: var(--color-error-subtle);
-  border: 1px solid color-mix(in oklch, var(--color-error) 20%, transparent);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
   max-width: none;
 }
 
-/* Submit CTA */
 .login-submit {
+  display: block;
   width: 100%;
-  padding: 0.65rem var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-primary);
+  color: #fff;
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: 600;
-  color: #fff;
-  background: var(--color-primary);
-  border: none;
+  text-align: center;
   cursor: pointer;
-  transition:
-    background var(--transition-ui),
-    box-shadow var(--transition-ui),
-    transform var(--transition-ui);
+  border: none;
+  transition: background var(--transition-interactive);
 }
-.login-submit:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  box-shadow: 0 4px 12px var(--color-primary-ring);
-  transform: translateY(-1px);
-}
-.login-submit:active:not(:disabled) {
-  background: var(--color-primary-active);
-  transform: translateY(0);
-  box-shadow: none;
-}
-.login-submit:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
+.login-submit:hover:not(:disabled) { background: var(--color-primary-hover); }
+.login-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>
