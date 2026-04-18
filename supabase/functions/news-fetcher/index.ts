@@ -24,9 +24,17 @@ Deno.serve(async (req: Request) => {
     ...(currentsResult.status === 'fulfilled' ? currentsResult.value : []),
   ]
 
-  const deduplicatedNews = Array.from(
+  const deduplicatedByUrl = Array.from(
     new Map(allNews.map((item) => [item.source_url, item])).values(),
   )
+  const seenTitleKeys = new Set<string>()
+  const deduplicatedNews = deduplicatedByUrl.filter((item) => {
+    const key = item.title.trim().toLocaleLowerCase('hu-HU')
+    if (!key) return false
+    if (seenTitleKeys.has(key)) return false
+    seenTitleKeys.add(key)
+    return true
+  })
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
   const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''

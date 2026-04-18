@@ -1,4 +1,10 @@
 import type { NewsItem } from './tavily-search.ts'
+import {
+  isCategoryRelevant,
+  isLikelyNewsItem,
+  prioritizeHungarianNews,
+  translateNewsToHungarianBestEffort,
+} from './news-processing.ts'
 
 export const CURRENTS_QUERIES = [
   { keywords: 'klíma légkondicionáló', category: 'klíma' },
@@ -84,9 +90,13 @@ const fetchQueryResults = async (
     throw new Error(`Currents response did not include a news array: ${keywords}`)
   }
 
-  return data.news
+  const mappedItems = data.news
     .map((item) => mapCurrentsNewsItem(item as CurrentsRawNewsItem, category))
     .filter((item): item is NewsItem => item !== null)
+    .filter((item) => isCategoryRelevant(item) && isLikelyNewsItem(item))
+
+  const prioritizedItems = prioritizeHungarianNews(mappedItems)
+  return translateNewsToHungarianBestEffort(prioritizedItems)
 }
 
 export async function fetchCurrentsNews(apiKey: string): Promise<NewsItem[]> {
