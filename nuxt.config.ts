@@ -17,11 +17,11 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
   ],
 
-  // Color mode: data-theme attribútum illeszkedik a tokens.css [data-theme='dark'] szelektorához
+  // Color mode: class strategy — .dark / .light class a <html>-en
+  // tokens.css .dark szelektor illeszkedik rá
   colorMode: {
     preference: 'system',
     fallback: 'light',
-    dataValue: 'theme',
     classSuffix: '',
   },
 
