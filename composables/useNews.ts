@@ -22,7 +22,7 @@ export function useNews() {
         page: String(currentPage.value),
         limit: String(LIMIT),
       })
-      if (category !== 'osszes') params.set('category', category)
+      if (category !== 'összes') params.set('category', category)
 
       const res = await $fetch<{ items: NewsItem[]; meta: { hasMore: boolean } }>(
         `/api/news?${params}`
